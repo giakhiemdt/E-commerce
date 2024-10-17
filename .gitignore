@@ -1,1 +1,4 @@
 .idea
+BACKEND/.idea
+FRONTEND/node_modules
+FRONTEND/.idea
