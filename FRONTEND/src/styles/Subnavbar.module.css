@@ -1,0 +1,21 @@
+/* Subnavbar.css */
+.navbar {
+  display: flex;
+  align-items: center;
+  background-color: rgb(189, 189, 196) !important;
+}
+
+.navbar-expand-sm {
+  padding: 0px;
+}
+
+.nav-link {
+  padding: 5px;
+  color: rgb(30, 30, 41);
+  --bs-nav-link-hover-color: rgb(98, 98, 130) !important;
+  font-weight: 550;
+}
+
+.navbar-nav {
+  display: flex;
+}

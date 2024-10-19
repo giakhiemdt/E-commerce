@@ -1,0 +1,63 @@
+/* Navbar.css */
+.navbar {
+  display: flex;
+  align-items: center;
+  background-color: rgb(30, 30, 41) !important;
+}
+
+.container-fluid {
+  justify-content: center !important;
+}
+
+.navbar-brand {
+  --bs-navbar-brand-color: rgb(228, 228, 255);
+  --bs-navbar-brand-hover-color: rgb(183, 183, 255);
+  padding-left: 50px;
+}
+
+.search-bar {
+  width: 1000px;
+}
+
+.search-button {
+  color: #000;
+  background-color: #ffc556;
+  border-color: #e79e41;
+}
+
+.search-button:hover {
+  color: #ffffff;
+  background-color: #ffbb39;
+  border-color: #e3932c;
+}
+
+.btn-edit {
+  display: flex;
+  align-items: center;
+}
+
+.auth-btn {
+  margin-right: 5px;
+  background-color: #ffc556;
+  color: black;
+  border-color: #e79e41;
+  font-weight: 550;
+  align-items: center;
+}
+
+.auth-btn:hover {
+  color: #ffffff;
+  background-color: #ffbb39;
+  border-color: #e3932c;
+}
+
+.icon-weight {
+  margin-left: 2px;
+  font-weight: 550;
+}
+
+.auth-bar {
+  display: flex;
+  align-items: center;
+  margin-right: 45px;
+}
