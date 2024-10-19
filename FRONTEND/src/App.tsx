@@ -1,15 +1,19 @@
 import React from "react";
-import Navbar from "./components/Navbar";
-import Subnavbar from "./components/Subnavbar";
-import Footer from "./components/Footer";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const App: React.FC = () => {
   return (
-    <div>
-      <Navbar />
-      <Subnavbar />
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </Router>
   );
 };
 
