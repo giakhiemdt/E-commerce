@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { Axios } from "axios";
 import {RegisterRequest} from "../models/requests/RegisterRequest";
 import { LoginRequest } from "../models/requests/LoginRequest";
 
@@ -23,3 +23,20 @@ export const fetchLogin = async (login : LoginRequest) => {
         return null;
     }
 };
+
+export const fetchLogout = async () => {
+    const token = sessionStorage.getItem("token");
+    
+    try {
+        const response = await axios.post("http://localhost:8080/api/logout", null, { // Đặt body là null nếu không cần
+            headers: {
+                AuthenticationToken: `Bearer ${token}`, // Sửa từ "AuthenticationToken" thành "Authorization"
+            }
+        });
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        console.log('Error fetching data:', error);
+        return null;
+    }
+}

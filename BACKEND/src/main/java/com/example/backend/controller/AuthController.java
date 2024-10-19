@@ -4,6 +4,7 @@ import com.example.backend.model.request.LoginRequest;
 import com.example.backend.model.request.RegisterRequest;
 import com.example.backend.model.response.LoginResponse;
 import com.example.backend.service.AccountService;
+import com.example.backend.service.TokenService;
 import com.example.backend.utility.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ public class AuthController {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    TokenService tokenService;
+
     @PostMapping(value = "/register")
     public ResponseEntity<String> handleRegister(@RequestBody() RegisterRequest registerRequest) {
         return ResponseEntity.ok(accountService.registerAccount(registerRequest));
@@ -35,5 +39,10 @@ public class AuthController {
         return ResponseEntity.ok(accountService.loginAccount(loginRequest));
     }
 
+    @PostMapping(value = "/logout")
+    public ResponseEntity<String> handleLogout(@RequestHeader("AuthenticationToken") String token) {
+        String result = tokenService.handleLogout(token);
+        return ResponseEntity.ok(result);
+    }
 
 }

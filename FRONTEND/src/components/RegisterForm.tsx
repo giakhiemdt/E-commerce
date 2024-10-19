@@ -2,26 +2,44 @@ import React, { useState } from "react";
 import { useRegister } from "../hooks/useRegister"; // Import logic xử lý
 import styles from "../styles/Register.module.css";
 
-interface RegisterFormProps {
-  onRegisterSuccess: (data: any) => void; // Hàm callback để xử lý phản hồi khi đăng ký thành công
-}
-
-const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
-  const { handleRegister, error, loading } = useRegister(); // Sử dụng logic từ useRegister
+const RegisterForm: React.FC = () => {
+  const { handleRegister, error: apiError, loading } = useRegister(); // Sử dụng logic từ useRegister
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [repassword, setRepassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const submitHandler = async () => {
+    setError("");
+    if (username.length < 6) {
+      setError("Username at least 6 charater.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Invalid email.");
+      return;
+    }
+
+    if (password !== repassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     const response = await handleRegister(
       username,
       email,
       password,
       repassword
     );
-    if (response) {
-      onRegisterSuccess(response); // Gọi hàm callback với dữ liệu phản hồi
+
+    if (response.status === 200 && response.data.success) {
+      return response.data;
+    } else {
+      // Đăng ký không thành công
+      setError("Registration failed. Please try again.");
+      return null; // Trả về null nếu đăng ký thất bại
     }
   };
 
@@ -29,7 +47,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
     <div className={styles.page}>
       <div className={`container ${styles.container}`}>
         <h3 className={styles["register-title"]}>Register</h3>
-        {error && <p style={{ color: "red" }}>{error}</p>} <br></br>
+        <br></br>
         <div className={styles["register-form"]}>
           <form>
             <a>User Name:</a>
@@ -76,6 +94,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
               {loading ? "Registering..." : "Register"}
             </button>
           </form>
+          {error && <p className={styles["error-text"]}>{error}</p>}
+          {apiError && <p className={styles["error-text"]}>{apiError}</p>}
         </div>
       </div>
     </div>

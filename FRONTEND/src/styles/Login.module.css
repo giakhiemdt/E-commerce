@@ -20,6 +20,7 @@
 
 .login-form {
   margin-top: 30px;
+  padding-bottom: 100px;
   justify-content: center;
   display: grid;
   font-size: 20px;
@@ -32,7 +33,6 @@
 .login-button {
   margin-top: 10px;
   width: 600px;
-  margin-bottom: 100px;
   color: #000;
   background-color: #ffc556;
   border-color: #e79e41;
@@ -42,6 +42,12 @@
   color: #ffffff;
   background-color: #ffbb39;
   border-color: #e3932c;
+}
+
+.error-text {
+  font-weight: 500;
+  font-size: 18px;
+  color: red;
 }
 
 .magrintop20 {

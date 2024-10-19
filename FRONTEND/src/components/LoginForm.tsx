@@ -7,24 +7,34 @@ interface LoginFormProps {
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
-  const { handleLogin, error, loading } = useLogin();
+  const { handleLogin, error: apiError, loading } = useLogin();
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const submitHandler = async () => {
-    const response = await handleLogin(username, password);
-    if (response) {
-      onLoginSuccess(response); // Gọi hàm callback với dữ liệu phản hồi
+    if (username === "") {
+      setError("Please fill username.");
+      return;
     }
+
+    if (password === "") {
+      setError("Please fill password.");
+      return;
+    }
+
+    const response = await handleLogin(username, password);
+    // if (response) {
+    //   onLoginSuccess(response); // Gọi hàm callback với dữ liệu phản hồi
+    // }
   };
 
   return (
     <div className={styles.page}>
       <div className={`container ${styles.container}`}>
         <h3 className={styles["login-title"]}>Login</h3>
-        {error && <p style={{ color: "red" }}>{error}</p>}
         <br />
-        <div className={styles["login-form"]}>
+        <div className={`${styles["login-form"]}`}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -56,6 +66,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
               {loading ? "Logging..." : "Login"}
             </button>
           </form>
+          {error && <p className={styles["error-text"]}>{error}</p>}
+          {apiError && <p className={styles["error-text"]}>{apiError}</p>}
         </div>
       </div>
     </div>

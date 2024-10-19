@@ -1,6 +1,7 @@
 package com.example.backend.config;
 
 
+import com.example.backend.service.TokenService;
 import com.example.backend.utility.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,13 +28,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private TokenService tokenService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = httpServletRequest.getHeader("Authorization");
 
         String name = null;
         String jwt = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ") && !tokenService.checkBlackList(authHeader)) {
             jwt = authHeader.substring(7);
             name = jwtUtil.extractEmail(jwt);
         }

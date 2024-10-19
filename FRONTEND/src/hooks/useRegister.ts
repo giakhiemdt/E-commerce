@@ -7,10 +7,6 @@ export const useRegister = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleRegister = async (username: string, email: string, password: string, rePassword: string) => {
-    if (password !== rePassword) {
-      setError("Passwords do not match!");
-      return;
-    }
 
     const registerData: RegisterRequest = {
       username,
