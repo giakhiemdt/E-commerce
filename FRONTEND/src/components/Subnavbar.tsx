@@ -4,7 +4,7 @@ import styles from "../styles/Subnavbar.module.css";
 const Subnavbar: React.FC = () => {
   return (
     <nav
-      className={`navbar ${styles.navbar} navbar-expand-sm ${styles["navbar-expand-sm"]}`}
+      className={`navbar ${styles.navbar} navbar-expand-sm ${styles["navbar-expand-sm"]} sticky-top`}
     >
       <div className="container-fluid ">
         <ul className="navbar-nav">
