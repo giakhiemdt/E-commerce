@@ -8,13 +8,16 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AccM from "./pages/admin/AccM";
+import { useDecodedToken } from "./hooks/useAuth";
 
 const App: React.FC = () => {
-  const isLoggedIn = () => {
-    const token = sessionStorage.getItem("token");
-    const username = sessionStorage.getItem("username");
-    return token && username && username.trim() !== ""; // Kiểm tra username không rỗng
-  };
+  const { decodedToken, loading } = useDecodedToken();
+
+  if (loading) {
+    // Có thể hiển thị một loader hoặc một trang trống trong khi loading
+    return <div>Loading...</div>; // Hoặc có thể dùng spinner
+  }
 
   return (
     <Router>
@@ -23,15 +26,21 @@ const App: React.FC = () => {
         <Route path="/home" element={<Home />} />
         <Route
           path="/login"
-          element={isLoggedIn() ? <Navigate to="/home" /> : <Login />}
+          element={decodedToken ? <Navigate to="/home" /> : <Login />}
         />
-        {/* <Route
-          path="/login"
-          element={ <Login />}
-        /> */}
         <Route
           path="/register"
-          element={isLoggedIn() ? <Navigate to="/home" /> : <Register />}
+          element={decodedToken ? <Navigate to="/home" /> : <Register />}
+        />
+        <Route
+          path="/admin/account/*"
+          element={
+            decodedToken && decodedToken.role === "ADMIN" ? (
+              <AccM />
+            ) : (
+              <Navigate to="/home" />
+            )
+          }
         />
       </Routes>
     </Router>

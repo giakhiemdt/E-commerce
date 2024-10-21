@@ -5,18 +5,16 @@ import { MdOutlineLogin } from "react-icons/md";
 import { VscAdd } from "react-icons/vsc";
 import { useNavigate } from "react-router-dom";
 import { MdOutlineAccountBox } from "react-icons/md";
-import { fetchLogout } from "../api/auth";
+import { useDecodedToken } from "../hooks/useAuth";
+import { useLogout } from "../hooks/useAuth";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const token = sessionStorage.getItem("token");
-  const username = sessionStorage.getItem("username");
+  const { decodedToken } = useDecodedToken();
 
   const handleLogout = async () => {
-    const response = await fetchLogout();
-    if (response === "Successful") {
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("username");
+    const response = await useLogout();
+    if (response) {
       navigate("/login");
     }
   };
@@ -47,7 +45,7 @@ const Navbar: React.FC = () => {
         </form>
       </div>
       <div className={styles["auth-bar"]}>
-        {username && token ? (
+        {decodedToken ? (
           <>
             <li className={`nav-item dropdown ${styles.dropdown}`}>
               <a
@@ -66,21 +64,70 @@ const Navbar: React.FC = () => {
                     Account
                   </a>
                 </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Cart
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Sale
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Order
-                  </a>
-                </li>
+                {decodedToken.role === "CUSTOMER" ? (
+                  <>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Cart
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Sale
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Order History
+                      </a>
+                    </li>
+                  </>
+                ) : decodedToken.role === "SELLER" ? (
+                  <>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        My Product
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Current Order
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Order History
+                      </a>
+                    </li>
+                  </>
+                ) : decodedToken.role === "ADMIN" ? (
+                  <>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Dash Board
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="dropdown-item"
+                        onClick={() => navigate("/admin/account")}
+                      >
+                        Account Manage
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Product Manage
+                      </a>
+                    </li>
+                    <li>
+                      <a className="dropdown-item" href="#">
+                        Support
+                      </a>
+                    </li>
+                  </>
+                ) : null}
+
                 <li>
                   <hr className={styles["horizontal-line"]} />
                   <a className={`dropdown-item`} onClick={handleLogout}>

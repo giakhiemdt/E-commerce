@@ -15,7 +15,6 @@ import jakarta.persistence.OneToOne;
 import java.util.List;
 
 import lombok.Data;
-import lombok.Generated;
 
 @Entity
 @Data
@@ -39,5 +38,5 @@ public class Payment {
     )
     @JsonManagedReference
     @JsonIgnore
-    private List<Transaction> transactions;
+    private List<Transactions> transactions;
 }

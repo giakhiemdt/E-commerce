@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -28,6 +29,17 @@ public class Account {
     @Column(nullable = false)
     private Timestamp createdDate;
 
+    @Column(nullable = false)
+    private boolean isActive;
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Users users;
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Seller seller;
+
     public Account() {
         this.createdDate = new Timestamp(System.currentTimeMillis());
     }
@@ -38,5 +50,6 @@ public class Account {
         this.password = password;
         this.role = role;
         this.createdDate = new Timestamp(System.currentTimeMillis()); // Cập nhật thời gian tạo
+        this.isActive = true;
     }
 }

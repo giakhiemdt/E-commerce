@@ -1,5 +1,6 @@
 package com.example.backend.utility;
 
+import com.example.backend.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,8 +17,9 @@ public class JwtUtil {
 
     private final Key SECRET_KEY =  new KeyUtil().getSecretKey();
 
-    public String generateToken(String name) {
+    public String generateToken(String name, Role role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role.toString());
         return createToken(claims, name);
     }
 
@@ -26,18 +28,23 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(name)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 1 hour
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public boolean validateToken(String token, String name) {
-        final String extractedEmail = extractEmail(token);
+        final String extractedEmail = extractName(token);
         return name.equals(extractedEmail) && !isTokenExpired(token);
     }
 
-    public String extractEmail(String token) {
+    public String extractName(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        Claims claims = extractClaims(token);
+        return claims.get("role", String.class);
     }
 
     private Claims extractClaims(String token) {

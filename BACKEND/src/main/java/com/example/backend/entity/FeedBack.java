@@ -22,11 +22,11 @@ public class FeedBack {
     private long id;
     @ManyToOne
     @JoinColumn(
-            name = "user_id",
+            name = "users_id",
             nullable = false
     )
     @JsonBackReference
-    private User user;
+    private Users users;
     @ManyToOne
     @JoinColumn(
             name = "product_id",

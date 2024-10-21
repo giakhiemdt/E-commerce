@@ -15,7 +15,6 @@ import jakarta.persistence.OneToOne;
 import java.sql.Timestamp;
 
 import lombok.Data;
-import lombok.Generated;
 
 @Entity
 @Data
@@ -41,5 +40,5 @@ public class CartStatus {
     )
     @JsonManagedReference
     @JsonIgnore
-    private Transaction transaction;
+    private Transactions transactions;
 }

@@ -18,7 +18,6 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import lombok.Data;
-import lombok.Generated;
 
 @Entity
 @Data
@@ -30,11 +29,11 @@ public class Cart {
     private long id;
     @ManyToOne
     @JoinColumn(
-            name = "user_id",
+            name = "users_id",
             nullable = false
     )
     @JsonBackReference
-    private User user;
+    private Users users;
     @Column(
             nullable = false
     )

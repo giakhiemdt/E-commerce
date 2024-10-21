@@ -1,4 +1,4 @@
-import axios, { Axios } from "axios";
+import axios from "axios";
 import {RegisterRequest} from "../models/requests/RegisterRequest";
 import { LoginRequest } from "../models/requests/LoginRequest";
 

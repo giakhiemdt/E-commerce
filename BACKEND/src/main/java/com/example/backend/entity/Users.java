@@ -4,22 +4,15 @@ package com.example.backend.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+
 import java.util.List;
 
 import lombok.Data;
-import lombok.Generated;
 
 @Entity
 @Data
-public class User {
+public class Users {
     @Id
     @GeneratedValue(
             strategy = GenerationType.IDENTITY
@@ -36,17 +29,25 @@ public class User {
     private String phone;
     private String address;
     @OneToMany(
-            mappedBy = "user",
+            mappedBy = "users",
             cascade = {CascadeType.ALL}
     )
     @JsonIgnore
     @JsonManagedReference
     private List<Cart> carts;
     @OneToMany(
-            mappedBy = "user",
+            mappedBy = "users",
             cascade = {CascadeType.ALL}
     )
     @JsonIgnore
     @JsonManagedReference
     private List<FeedBack> feedBacks;
+
+    public Users(Account account) {
+        this.account = account;
+    }
+
+    public Users() {
+
+    }
 }
