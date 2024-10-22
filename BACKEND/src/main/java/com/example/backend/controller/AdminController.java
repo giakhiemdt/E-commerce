@@ -2,11 +2,10 @@ package com.example.backend.controller;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Role;
-import com.example.backend.model.request.AccEditRequest;
-import com.example.backend.model.request.AccIsActiveRequest;
+import com.example.backend.model.request.frontend.AccEditRequest;
+import com.example.backend.model.request.frontend.AccIsActiveRequest;
 import com.example.backend.service.AccountService;
 import com.example.backend.service.TokenService;
-import com.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +41,7 @@ public class AdminController {
     }
 
     @PostMapping("/edit-account")
-    public ResponseEntity<Boolean> editAccount(@RequestHeader("AuthenticationToken") String token, @RequestBody AccEditRequest accEditRequest) {
+    public ResponseEntity<Boolean> editAccount(@RequestHeader("AuthenticationToken") String token, @RequestBody AccEditRequest accEditRequest) throws Exception {
         if (tokenService.isValidToken(token)) {
             return ResponseEntity.ok(accountService.updateAccInfoById(accEditRequest));
         }

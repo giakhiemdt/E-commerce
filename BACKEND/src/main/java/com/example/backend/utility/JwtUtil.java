@@ -1,10 +1,15 @@
 package com.example.backend.utility;
 
+import com.example.backend.entity.Account;
+import com.example.backend.entity.JWToken;
 import com.example.backend.entity.Role;
+import com.example.backend.repository.JWTokenRepository;
+import com.example.backend.service.TokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -15,27 +20,34 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
+    @Autowired
+    JWTokenRepository jwTokenRepository;
+
     private final Key SECRET_KEY =  new KeyUtil().getSecretKey();
 
-    public String generateToken(String name, Role role) {
+    public String generateToken(Account account, Role role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role.toString());
-        return createToken(claims, name);
+        Date createdDate = new Date(System.currentTimeMillis());
+        Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 60 * 24);
+        String token = createToken(claims, account.getUsername(), createdDate, expirationDate);
+        jwTokenRepository.save(new JWToken(token, account, createdDate, expirationDate));
+        return token;
     }
 
-    private String createToken(Map<String, Object> claims, String name) {
+    private String createToken(Map<String, Object> claims, String name, Date createdDate, Date expirationDate) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(name)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 1 hour
+                .setIssuedAt(createdDate)
+                .setExpiration(expirationDate) // 1 hour
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean validateToken(String token, String name) {
-        final String extractedEmail = extractName(token);
-        return name.equals(extractedEmail) && !isTokenExpired(token);
+    public boolean validateToken(String token, String name) { // Lỏ không cần!!!
+        final String extractedName = extractName(token);
+        return name.equals(extractedName) && !isTokenExpired(token);
     }
 
     public String extractName(String token) {

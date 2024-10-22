@@ -64,7 +64,7 @@ const Navbar: React.FC = () => {
                     Account
                   </a>
                 </li>
-                {decodedToken.role === "CUSTOMER" ? (
+                {decodedToken.role === "USER" ? (
                   <>
                     <li>
                       <a className="dropdown-item" href="#">

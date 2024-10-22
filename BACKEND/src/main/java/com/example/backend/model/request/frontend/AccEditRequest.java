@@ -1,4 +1,4 @@
-package com.example.backend.model.request;
+package com.example.backend.model.request.frontend;
 
 import com.example.backend.entity.Role;
 import lombok.Data;

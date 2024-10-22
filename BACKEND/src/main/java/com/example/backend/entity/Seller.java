@@ -52,4 +52,12 @@ public class Seller {
     @JsonIgnore
     @JsonManagedReference
     private List<Product> products;
+
+    public Seller(Account account, String fullname, String phone, String address) {
+        this.account = account;
+        this.fullname = fullname;
+        this.phone = phone;
+        this.address = address;
+    }
+
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { fetchAccoutList, fetchUpdateAccount, fetchUpdateIsActive } from "../api/admin";
-import { AccountListResponse } from "../models/responses/AccountListResponse";
+import { AccountListResponse, Admin, Seller, User } from "../models/responses/AccountListResponse";
 import { UpdateAccRequest } from "../models/requests/UpdateAccRequest";
 
 export const useGetAccList = () => {
@@ -55,9 +55,18 @@ export const useUpdateAccount = () => {
     const [error, setError] = useState<String | null>(null);
     const [loading, setLoading] = useState<boolean| null>(null);
 
-    const handleUpdateAccount = async(updateRequest: UpdateAccRequest) => {
+    const handleUpdateAccount = async(updateRequest: UpdateAccRequest, account: Admin | Seller | User) => {
         setError(null);
         setLoading(true);
+        if (updateRequest.username === account?.username) {
+            updateRequest.username = null;
+          }
+          if (updateRequest.email === account?.email) {
+            updateRequest.email = null;
+          }
+          if (updateRequest.role === account?.role) {
+            updateRequest.role = null;
+          }
         try {
             const response = await fetchUpdateAccount(updateRequest);
 

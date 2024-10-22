@@ -67,7 +67,7 @@ export const useRegister = () => {
     try {
       const response = await fetchRegister(registerData);
       
-        if (response.status === 200) {
+        if (response) {
             navigate("/login");
         }
 
@@ -83,7 +83,7 @@ export const useRegister = () => {
 
 export const useLogout = async () => {
   const response = await fetchLogout();
-  if (response === "Successful") {
+  if (response) {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
     window.location.href = "/login";

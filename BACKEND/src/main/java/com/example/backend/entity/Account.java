@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,6 +40,10 @@ public class Account {
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Seller seller;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<JWToken> jwTokens;
 
     public Account() {
         this.createdDate = new Timestamp(System.currentTimeMillis());

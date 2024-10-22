@@ -37,7 +37,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String name = null;
         String jwt = null;
-        if (authHeader != null && authHeader.startsWith("Bearer ") && !tokenService.checkBlackList(authHeader)) {
+        if (authHeader != null && authHeader.startsWith("Bearer ") && tokenService.checkWhiteList(authHeader)) {
             jwt = authHeader.substring(7);
             name = jwtUtil.extractName(jwt);
         }

@@ -43,7 +43,12 @@ export const fetchUpdateAccount = async(updateAccRequest: UpdateAccRequest) => {
 
     try {
         const response = await axios.post("http://localhost:8080/api/edit-account", 
-        {updateAccRequest}, 
+        {
+            accountId: updateAccRequest.accountId,
+            username: updateAccRequest.username,
+            email: updateAccRequest.email,
+            role: updateAccRequest.role,
+        }, 
         {
             headers: {
                 AuthenticationToken: `Bearer ${token}`,

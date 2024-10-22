@@ -26,15 +26,6 @@ const AccEdit: React.FC = () => {
       email !== account?.email ||
       role !== account?.role
     ) {
-      if (username === account?.username) {
-        setUserName(null);
-      }
-      if (email === account?.email) {
-        setEmail(null);
-      }
-      if (role !== account?.role) {
-        setRole(null);
-      }
       const updateRequest: UpdateAccRequest = {
         accountId,
         username,
@@ -42,7 +33,7 @@ const AccEdit: React.FC = () => {
         role,
       };
 
-      const response = await handleUpdateAccount(updateRequest);
+      const response = await handleUpdateAccount(updateRequest, account);
       if (response) {
         // window.location.href = "/admin/account";
       }
@@ -114,7 +105,7 @@ const AccEdit: React.FC = () => {
                   onChange={handleChange}
                   className="form-control"
                 >
-                  <option value="ADMIN">ADMIN</option>
+                  {/* <option value="ADMIN">ADMIN</option> */}
                   <option value="SELLER">SELLER</option>
                   <option value="USER">USER</option>
                 </select>

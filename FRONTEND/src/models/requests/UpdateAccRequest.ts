@@ -1,7 +1,7 @@
 
 export interface UpdateAccRequest {
     accountId: number,
-    username: string,
-    email: string,
-    role: string,
+    username: string | null,
+    email: string | null,
+    role: string | null,
 }

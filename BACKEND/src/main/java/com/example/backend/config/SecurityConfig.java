@@ -27,7 +27,7 @@ public class SecurityConfig { //abc
         http
                 .csrf(csrf -> csrf.disable()) // Vô hiệu hóa CSRF protection
                 .authorizeRequests()
-                .requestMatchers("/api/**").permitAll()
+                .requestMatchers("/api/**", "/websocket/**").permitAll()
                 .anyRequest().authenticated();
 
 

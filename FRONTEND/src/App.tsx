@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AccM from "./pages/admin/AccM";
 import { useDecodedToken } from "./hooks/useAuth";
+import WebSocketComponent from "./utils/WebSocket";
+import UpdateAccInfo from "./pages/UpdateAccInfo";
 
 const App: React.FC = () => {
   const { decodedToken, loading } = useDecodedToken();
@@ -21,6 +23,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <WebSocketComponent />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
@@ -31,6 +34,10 @@ const App: React.FC = () => {
         <Route
           path="/register"
           element={decodedToken ? <Navigate to="/home" /> : <Register />}
+        />
+        <Route
+          path="/update-acc-info"
+          element={!decodedToken ? <Navigate to="/home" /> : <UpdateAccInfo />}
         />
         <Route
           path="/admin/account/*"
