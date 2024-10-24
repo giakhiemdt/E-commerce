@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import styles from "../styles/AccountManage.module.css";
-import { useLocation } from "react-router-dom";
-import { UpdateAccRequest } from "../models/requests/UpdateAccRequest";
-import { useUpdateAccount } from "../hooks/useAdmin";
+import styles from "../../../styles/AccountManage.module.css";
 
-const AccEdit: React.FC = () => {
+import { useLocation } from "react-router-dom";
+import { UpdateAccountInfoRequest } from "../../../models/requests/AdminRequest";
+import { useUpdateAccount } from "../../../hooks/useAdmin";
+
+const AccountEdit: React.FC = () => {
   const location = useLocation();
   const { account } = location.state || {};
 
@@ -26,7 +27,7 @@ const AccEdit: React.FC = () => {
       email !== account?.email ||
       role !== account?.role
     ) {
-      const updateRequest: UpdateAccRequest = {
+      const updateRequest: UpdateAccountInfoRequest = {
         accountId,
         username,
         email,
@@ -35,7 +36,7 @@ const AccEdit: React.FC = () => {
 
       const response = await handleUpdateAccount(updateRequest, account);
       if (response) {
-        // window.location.href = "/admin/account";
+        window.location.href = "/admin/account";
       }
     }
   };
@@ -127,4 +128,4 @@ const AccEdit: React.FC = () => {
   );
 };
 
-export default AccEdit;
+export default AccountEdit;

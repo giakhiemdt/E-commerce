@@ -8,19 +8,38 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AccM from "./pages/admin/AccM";
+import AccountManagement from "./pages/authenticaiton/admin/AccountManagement";
 import { useDecodedToken } from "./hooks/useAuth";
 import WebSocketComponent from "./utils/WebSocket";
-import UpdateAccInfo from "./pages/UpdateAccInfo";
+import AccountProfile from "./pages/authenticaiton/AccountProfile";
+import ProductManagement from "./pages/authenticaiton/seller/ProductManagement";
 
 const App: React.FC = () => {
   const { decodedToken, loading } = useDecodedToken();
+  const isSellerInfoStatus = sessionStorage.getItem("SellerInfoStatus");
 
   if (loading) {
-    // Có thể hiển thị một loader hoặc một trang trống trong khi loading
-    return <div>Loading...</div>; // Hoặc có thể dùng spinner
+    // Hiển thị loader trong khi đợi token được giải mã
+    return <div>Loading...</div>;
   }
 
+  // Nếu isSellerInfoStatus tồn tại, chuyển hướng đến trang AccountProfile
+  if (isSellerInfoStatus) {
+    return (
+      <Router>
+        <WebSocketComponent />
+        <Routes>
+          <Route path="/account-profile" element={<AccountProfile />} />
+          <Route
+            path="*"
+            element={<Navigate to="/account-profile" replace />}
+          />
+        </Routes>
+      </Router>
+    );
+  }
+
+  // Nếu không có SellerInfoStatus, render các routes bình thường
   return (
     <Router>
       <WebSocketComponent />
@@ -36,19 +55,30 @@ const App: React.FC = () => {
           element={decodedToken ? <Navigate to="/home" /> : <Register />}
         />
         <Route
-          path="/update-acc-info"
-          element={!decodedToken ? <Navigate to="/home" /> : <UpdateAccInfo />}
+          path="/account-profile"
+          element={decodedToken ? <AccountProfile /> : <Navigate to="/home" />}
         />
         <Route
-          path="/admin/account/*"
+          path="/seller/product/*"
           element={
-            decodedToken && decodedToken.role === "ADMIN" ? (
-              <AccM />
+            decodedToken && decodedToken.role === "SELLER" ? (
+              <ProductManagement />
             ) : (
               <Navigate to="/home" />
             )
           }
         />
+        <Route
+          path="/admin/account/*"
+          element={
+            decodedToken && decodedToken.role === "ADMIN" ? (
+              <AccountManagement />
+            ) : (
+              <Navigate to="/home" />
+            )
+          }
+        />
+        {/* Các route khác */}
       </Routes>
     </Router>
   );

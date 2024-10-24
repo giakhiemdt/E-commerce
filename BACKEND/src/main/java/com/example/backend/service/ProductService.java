@@ -38,4 +38,8 @@ public class ProductService {
     public List<Product> getProductByType(String typeName) {
         return productRepository.findProductByProductTypeName(typeName);
     }
+
+    public List<Product> findProductBySellerId(long id) {
+        return productRepository.findProductBySellerId(id);
+    }
 }

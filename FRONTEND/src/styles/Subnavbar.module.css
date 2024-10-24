@@ -19,3 +19,10 @@
 .navbar-nav {
   display: flex;
 }
+
+.hello-message {
+  font-size: 18px;
+  font-weight: 500;
+  font-style: italic;
+  display: contents;
+}

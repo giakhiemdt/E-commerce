@@ -26,7 +26,7 @@ public class AdminController {
 
     @GetMapping("/accounts")
     public ResponseEntity<Map<Role, List<Account>>> getAllAccounts(@RequestHeader("AuthenticationToken") String token) {
-        if (tokenService.isValidToken(token)) {
+        if (tokenService.isValidToken(tokenService.trueToken(token)) && tokenService.isADMIN(tokenService.trueToken(token))) {
             return ResponseEntity.ok(accountService.findAllByRole());
         }
         return ResponseEntity.badRequest().build();
@@ -34,7 +34,7 @@ public class AdminController {
 
     @PostMapping("/change-account-status")
     public ResponseEntity<Boolean> changeAccountStatus(@RequestHeader("AuthenticationToken") String token, @RequestBody AccIsActiveRequest accIsActiveRequest) {
-        if (tokenService.isValidToken(token)) {
+        if (tokenService.isValidToken(tokenService.trueToken(token)) && tokenService.isADMIN(tokenService.trueToken(token))) {
             return ResponseEntity.ok(accountService.updateStatusById(accIsActiveRequest.getAccountId()));
         }
         return ResponseEntity.badRequest().build();
@@ -42,8 +42,9 @@ public class AdminController {
 
     @PostMapping("/edit-account")
     public ResponseEntity<Boolean> editAccount(@RequestHeader("AuthenticationToken") String token, @RequestBody AccEditRequest accEditRequest) throws Exception {
-        if (tokenService.isValidToken(token)) {
-            return ResponseEntity.ok(accountService.updateAccInfoById(accEditRequest));
+        if (tokenService.isValidToken(tokenService.trueToken(token)) && tokenService.isADMIN(tokenService.trueToken(token))) {
+            accountService.updateAccInfoById(accEditRequest);
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
     }

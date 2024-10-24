@@ -43,6 +43,7 @@ public class JwtUtil {
                 .setExpiration(expirationDate) // 1 hour
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
+
     }
 
     public boolean validateToken(String token, String name) { // Lỏ không cần!!!

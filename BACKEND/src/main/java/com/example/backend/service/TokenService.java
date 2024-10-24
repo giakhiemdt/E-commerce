@@ -44,15 +44,24 @@ public class TokenService {
         return "Failed";
     }
 
-    public boolean isValidToken(String authHeader) {
-        if (authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            String name = jwtUtil.extractName(token);
-            if (aRepo.findByUsername(name).isPresent() && jwTokenRepository.existsByToken(token)) { 
-                return jwtUtil.validateToken(token, name);
-            }
-
+    public boolean isValidToken(String token) {
+        String name = jwtUtil.extractName(token);
+        if (aRepo.findByUsername(name).isPresent() && jwTokenRepository.existsByToken(token)) {
+            return jwtUtil.validateToken(token, name);
         }
         return false;
+    }
+
+    public boolean isADMIN(String token) {
+        String rolw = jwtUtil.extractRole(token);
+        return rolw.equals("ADMIN");
+    }
+
+    public String trueToken(String authHeader) {
+        if (authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            return token;
+        }
+        return null;
     }
 }

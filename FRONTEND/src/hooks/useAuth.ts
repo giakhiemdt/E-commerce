@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { fetchLogin } from "../api/auth";
-import { LoginRequest } from "../models/requests/LoginRequest"; 
-import { LoginResponse } from "../models/responses/LoginResponse"; 
+import { LoginRequest } from "../models/requests/AuthenticationRequest"; 
+import { LoginResponse } from "../models/responses/AuthenticationResponse"; 
 import { useNavigate } from "react-router-dom";
 
 import { fetchRegister } from "../api/auth"; 
-import { RegisterRequest } from "../models/requests/RegisterRequest"; 
+import { RegisterRequest } from "../models/requests/AuthenticationRequest"; 
 
 import { useEffect } from "react";
 import { decodeToken } from "../utils/jwt";  
@@ -32,7 +32,7 @@ export const useLogin = () => {
             if (response.token) {
                 sessionStorage.setItem("token", response.token);
                 sessionStorage.setItem("username", response.username);
-                window.location.href = "/home";
+                  window.location.href = "/home";
 
             }
         } catch (error) {
@@ -86,6 +86,7 @@ export const useLogout = async () => {
   if (response) {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
+    sessionStorage.removeItem("SellerInfoStatus");
     window.location.href = "/login";
   }
   return null;

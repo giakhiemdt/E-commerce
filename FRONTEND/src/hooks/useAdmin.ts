@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { fetchAccoutList, fetchUpdateAccount, fetchUpdateIsActive } from "../api/admin";
-import { AccountListResponse, Admin, Seller, User } from "../models/responses/AccountListResponse";
-import { UpdateAccRequest } from "../models/requests/UpdateAccRequest";
+import { AccountListResponse, Admin, Seller, User } from "../models/responses/AdminResponse";
+import { UpdateAccountInfoRequest } from "../models/requests/AdminRequest";
 
-export const useGetAccList = () => {
+export const useGetAccountList = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -26,7 +26,7 @@ export const useGetAccList = () => {
     return {handleGetAccountList, error, loading};
 };
 
-export const useChangeAccStatus = () => {
+export const useChangeAccountStatus = () => {
     const [error, setError] = useState<String | null>(null);
     const [loading, setLoading] = useState<boolean| null>(null);
 
@@ -55,7 +55,7 @@ export const useUpdateAccount = () => {
     const [error, setError] = useState<String | null>(null);
     const [loading, setLoading] = useState<boolean| null>(null);
 
-    const handleUpdateAccount = async(updateRequest: UpdateAccRequest, account: Admin | Seller | User) => {
+    const handleUpdateAccount = async(updateRequest: UpdateAccountInfoRequest, account: Admin | Seller | User) => {
         setError(null);
         setLoading(true);
         if (updateRequest.username === account?.username) {
@@ -71,6 +71,7 @@ export const useUpdateAccount = () => {
             const response = await fetchUpdateAccount(updateRequest);
 
             if (response) {
+                window.location.href = "/admin/account";
                 return response;
             }
         }catch(error) {

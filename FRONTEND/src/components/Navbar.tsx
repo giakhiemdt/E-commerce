@@ -85,12 +85,18 @@ const Navbar: React.FC = () => {
                 ) : decodedToken.role === "SELLER" ? (
                   <>
                     <li>
-                      <a className="dropdown-item" href="#">
+                      <a
+                        className="dropdown-item"
+                        onClick={() => navigate("/seller/product/")}
+                      >
                         My Product
                       </a>
                     </li>
                     <li>
-                      <a className="dropdown-item" href="#">
+                      <a
+                        className="dropdown-item"
+                        onClick={() => navigate("/seller/product/")}
+                      >
                         Current Order
                       </a>
                     </li>

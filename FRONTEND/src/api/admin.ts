@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UpdateAccRequest } from '../models/requests/UpdateAccRequest';
+import { UpdateAccountInfoRequest } from '../models/requests/AdminRequest';
 
 export const fetchAccoutList = async () => {
     const token = sessionStorage.getItem("token");
@@ -38,16 +38,16 @@ export const fetchUpdateIsActive = async (accountId: number) => {
     }
 };
 
-export const fetchUpdateAccount = async(updateAccRequest: UpdateAccRequest) => {
+export const fetchUpdateAccount = async(updateAccountInfoRequest: UpdateAccountInfoRequest) => {
     const token = sessionStorage.getItem("token")
 
     try {
         const response = await axios.post("http://localhost:8080/api/edit-account", 
         {
-            accountId: updateAccRequest.accountId,
-            username: updateAccRequest.username,
-            email: updateAccRequest.email,
-            role: updateAccRequest.role,
+            accountId: updateAccountInfoRequest.accountId,
+            username: updateAccountInfoRequest.username,
+            email: updateAccountInfoRequest.email,
+            role: updateAccountInfoRequest.role,
         }, 
         {
             headers: {

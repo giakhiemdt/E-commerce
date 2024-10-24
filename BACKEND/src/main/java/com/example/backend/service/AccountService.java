@@ -1,8 +1,8 @@
 package com.example.backend.service;
 
+import com.example.backend.controller.MessageController;
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Role;
-import com.example.backend.model.WebSocketHandler;
 import com.example.backend.model.request.frontend.AccEditRequest;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
@@ -12,7 +12,6 @@ import com.example.backend.utility.JwtUtil;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +36,7 @@ public class AccountService {
     private UserService userService;
 
     @Autowired
-    private BackendMessageService backendMessageService;
+    private MessageService messageService;
 
 
     public Optional<Account> findById(Long id) {
@@ -110,7 +109,7 @@ public class AccountService {
     }
 
     @Transactional
-    public boolean updateAccInfoById(AccEditRequest accEditRequest) throws Exception {
+    public void updateAccInfoById(AccEditRequest accEditRequest) throws Exception {
         if (accEditRequest.getUsername() != null) {
             updateUserNameById(accEditRequest.getAccountId(), accEditRequest.getUsername());
         }
@@ -123,12 +122,10 @@ public class AccountService {
                 Optional<Account> existingAccount = accountRepository.findById(accEditRequest.getAccountId());
                 if (existingAccount.isPresent()) {
                     Account account = existingAccount.get();
-                    System.out.println("Hellloo");
-                    backendMessageService.sendUpdateRoleSellerMessage(account.getUsername());
+                    messageService.sendUpdateRoleSellerMessage(account.getUsername());
                 }
             }
         }
-        return true;
     }
 
     //tạo Account đồng thời tạo thêm User
@@ -167,6 +164,7 @@ public class AccountService {
 
             if (passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
                 String token = jwtUtil.generateToken(account, account.getRole());
+
                 return new LoginResponse(account.getUsername(), token);
             }else {
                 throw new RuntimeException("Invalid password!");

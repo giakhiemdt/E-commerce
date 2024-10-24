@@ -1,16 +1,19 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import styles from "../styles/AccountManage.module.css";
-import { useGetAccList, useChangeAccStatus } from "../hooks/useAdmin";
-import { Seller, Admin, User } from "../models/responses/AccountListResponse";
+import styles from "../../../styles/AccountManage.module.css";
+import {
+  useGetAccountList,
+  useChangeAccountStatus,
+} from "../../../hooks/useAdmin";
+import { Seller, Admin, User } from "../../../models/responses/AdminResponse";
 import { useNavigate } from "react-router-dom";
 
-const AccList: React.FC = () => {
+const AccountList: React.FC = () => {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
-  const { handleGetAccountList, error, loading } = useGetAccList();
+  const { handleGetAccountList, error, loading } = useGetAccountList();
 
   const fetchData = async () => {
     try {
@@ -28,7 +31,7 @@ const AccList: React.FC = () => {
     fetchData();
   }, []);
 
-  const { handleChangeAccountStatus } = useChangeAccStatus();
+  const { handleChangeAccountStatus } = useChangeAccountStatus();
 
   const handleChangeStatus = async (id: number) => {
     try {
@@ -213,4 +216,4 @@ const AccList: React.FC = () => {
   );
 };
 
-export default AccList;
+export default AccountList;

@@ -1,7 +1,10 @@
 import React from "react";
 import styles from "../styles/Subnavbar.module.css";
+import { useDecodedToken } from "../hooks/useAuth";
 
 const Subnavbar: React.FC = () => {
+  const { decodedToken } = useDecodedToken();
+
   return (
     <nav
       className={`navbar ${styles.navbar} navbar-expand-sm ${styles["navbar-expand-sm"]} sticky-top`}
@@ -29,6 +32,9 @@ const Subnavbar: React.FC = () => {
             </a>
           </li>
         </ul>
+        {decodedToken ? (
+          <h5 className={styles["hello-message"]}>Hello, {decodedToken.sub}</h5>
+        ) : null}
       </div>
     </nav>
   );

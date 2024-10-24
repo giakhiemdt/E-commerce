@@ -1,6 +1,6 @@
 import axios from "axios";
-import {RegisterRequest} from "../models/requests/RegisterRequest";
-import { LoginRequest } from "../models/requests/LoginRequest";
+import {RegisterRequest} from "../models/requests/AuthenticationRequest";
+import { LoginRequest } from "../models/requests/AuthenticationRequest";
 
 export const fetchRegister = async (register : RegisterRequest) => {
     try {
