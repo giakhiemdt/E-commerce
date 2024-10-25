@@ -1,0 +1,115 @@
+.page {
+  background-color: #f2f2f2;
+}
+
+.container {
+  max-width: 1200px;
+  margin-top: 100px;
+  border-radius: 15px;
+  background-color: white;
+  margin-bottom: 100px;
+  padding-bottom: 30px;
+}
+
+.btn-custom {
+  width: 100px;
+  color: black;
+}
+
+.btn-detail {
+  background-color: #ffc556;
+  border-color: #e79e41;
+}
+
+.btn-detail:hover {
+  color: #ffffff;
+  background-color: #ffbb39;
+  border-color: #e3932c;
+}
+
+.btn-edit {
+  background-color: #b2ec98;
+  border-color: #91c27a;
+}
+
+.btn-edit:hover {
+  background-color: #91e66c;
+  border-color: #7aa367;
+}
+
+.btn-active {
+  background-color: #569aff;
+  border-color: #227cff;
+}
+
+.btn-active:hover {
+  background-color: rgb(255, 74, 74);
+  border-color: rgb(255, 28, 28);
+}
+
+.btn-inactive {
+  background-color: rgb(255, 74, 74);
+  border-color: rgb(255, 28, 28);
+}
+
+.btn-inactive:hover {
+  background-color: #569aff;
+  border-color: #227cff;
+}
+
+.action-custom {
+  padding-left: 130px !important;
+}
+
+.admin-title {
+  justify-items: center;
+  display: grid;
+  padding-top: 50px;
+  padding-bottom: 30px;
+  font-size: 40px;
+  font-weight: 600;
+}
+
+.input-bar {
+  /* width: 400px; */
+}
+
+.info {
+  font-size: 20px;
+  font-weight: 550;
+}
+
+.small-title {
+  background-color: #1e1e29;
+  color: white;
+  border-radius: 5px;
+  padding: 6px;
+  padding-left: 20px;
+}
+
+.paddingleft25 {
+  padding-left: 25px;
+}
+
+.paddingright25 {
+  padding-right: 25px;
+}
+
+.btn-submit {
+  margin-top: 10px;
+  background-color: #ffc556;
+  color: black;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.btn-submit:hover {
+  color: #ffffff;
+  background-color: #ffbb39;
+  border-color: #e3932c;
+}
+
+.error-text {
+  font-weight: 500;
+  font-size: 18px;
+}

@@ -36,16 +36,13 @@ const ProductList: React.FC = () => {
             <p>Error: {error}</p>
           ) : (
             <div>
-              <h2>Admin</h2>
+              <h2>Your Product</h2>
               <table className="table">
                 <thead className="table-dark">
                   <tr>
-                    <th>ID</th>
-                    <th>UserName</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Created Date</th>
-                    <th className={styles["action-custom"]}>Action</th>
+                    <th>Product ID</th>
+                    <th>Name</th>
+                    <th>Quantity</th>
                   </tr>
                 </thead>
                 <tbody>

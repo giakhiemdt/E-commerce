@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class LoginResponse {
-    String username;
+    String username; // Thực ra cũng không cần username cho lắm!
     String token;
 
     public LoginResponse(String username, String token) {

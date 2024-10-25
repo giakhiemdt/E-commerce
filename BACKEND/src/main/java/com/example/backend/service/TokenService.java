@@ -1,11 +1,15 @@
 package com.example.backend.service;
 
+import com.example.backend.entity.JWToken;
 import com.example.backend.repository.AccountRepository;
 import com.example.backend.repository.JWTokenRepository;
 import com.example.backend.utility.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class TokenService {
@@ -28,20 +32,36 @@ public class TokenService {
         jwTokenRepository.deleteByToken(token);
     }
 
-    public boolean checkWhiteList(String token) {
+    public boolean existToken(String token) { // Kiểm tra token có tồn tại hay không, cái này không kiểm tra thời gian hết hạn đâu
         return jwTokenRepository.existsByToken(token);
     }
 
+    public JWToken findByToken(String token) {
+        Optional<JWToken> existingJwtToken = jwTokenRepository.findByToken(token);
+        return existingJwtToken.orElse(null); // Có token thì trả về không thì nullll!
+    }
+
     @Transactional
-    public String handleLogout(String authHeader) {
-        if (authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (checkWhiteList(token)) {
+    public boolean checkWhiteList(String token) {
+        JWToken jwToken = findByToken(token);
+        if (jwToken != null) { // Kiểm tra nếu tồn tại token nhe
+            if (jwToken.getEndAt().before(new Date())) { // Nếu token đã hết hạn thì xóa luôn token đó và trả về false
                 deleteToken(token);
-                return "Successful";
+                return false;
             }
+            return true; // Nếu token chưa hết hạn thì trả về true đó ní;
         }
-        return "Failed";
+        return false; // Nếu không tồn tại token thì trả về false
+    }
+
+    @Transactional
+    public boolean handleLogout(String authHeader) {
+        String token = trueToken(authHeader);
+        if (checkWhiteList(token)) {
+            deleteToken(token);
+            return true;
+        }
+        return false;
     }
 
     public boolean isValidToken(String token) {
@@ -57,6 +77,16 @@ public class TokenService {
         return rolw.equals("ADMIN");
     }
 
+    public boolean isSELLER(String token) {
+        String rolw = jwtUtil.extractRole(token);
+        return rolw.equals("SELLER");
+    }
+
+    public boolean isUSER(String token) {
+        String rolw = jwtUtil.extractRole(token);
+        return rolw.equals("USER");
+    }
+
     public String trueToken(String authHeader) {
         if (authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
@@ -64,4 +94,6 @@ public class TokenService {
         }
         return null;
     }
+
+
 }

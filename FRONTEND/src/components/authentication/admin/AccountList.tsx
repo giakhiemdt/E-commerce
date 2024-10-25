@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "../../../styles/AccountManage.module.css";
 import {
   useGetAccountList,
@@ -27,6 +26,7 @@ const AccountList: React.FC = () => {
       console.error("Error fetching account list:", err);
     }
   };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -38,7 +38,9 @@ const AccountList: React.FC = () => {
       const response = await handleChangeAccountStatus(id);
       if (response) {
         console.log(`Account ${id} status changed successfully`);
-        fetchData();
+
+        // Tải lại danh sách sau khi thay đổi trạng thái
+        await fetchData();
       }
     } catch (error) {
       console.error("Error changing status:", error);

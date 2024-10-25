@@ -1,9 +1,9 @@
 package com.example.backend.service;
 
-import com.example.backend.controller.MessageController;
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Role;
 import com.example.backend.model.request.frontend.AccEditRequest;
+import com.example.backend.model.request.frontend.AccProfileRequest;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
 import com.example.backend.model.response.LoginResponse;
@@ -38,6 +38,11 @@ public class AccountService {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private SellerService sellerService;
 
     public Optional<Account> findById(Long id) {
         return accountRepository.findById(id);
@@ -59,90 +64,99 @@ public class AccountService {
         return accountRepository.findByRole(role);
     }
 
-    public Map<Role, List<Account>> findAllByRole() {
+    public Optional<Account> findByToken(String token) {
+        return findByUserName(jwtUtil.extractName(tokenService.trueToken(token)));
+    }
+
+    public Map<Role, List<Account>> findAllByRole(String authHeader) {
+        String token = tokenService.trueToken(authHeader);
         Map<Role, List<Account>> map = new HashMap<>();
-        map.put(Role.ADMIN, findByRole(Role.ADMIN));
-        map.put(Role.SELLER, findByRole(Role.SELLER));
-        map.put(Role.USER, findByRole(Role.USER));
+        if (tokenService.isValidToken(token) && tokenService.isADMIN(token)) {
+            map.put(Role.ADMIN, findByRole(Role.ADMIN));
+            map.put(Role.SELLER, findByRole(Role.SELLER));
+            map.put(Role.USER, findByRole(Role.USER));
+        }
         return map;
     }
 
     @Transactional
-    public boolean updateStatusById(Long accountId) {
-        Optional<Account> account = accountRepository.findById(accountId);
-        if (account.isPresent()) {
-            Account ac = account.get();
-            accountRepository.updateAccountStatusByAccountId(accountId, !ac.isActive());
-            return true;
+    public boolean updateStatusById(String authHeader,Long accountId) {
+        String token = tokenService.trueToken(authHeader);
+        if (tokenService.isValidToken(token) && tokenService.isADMIN(token)) {
+            Optional<Account> existingAccount = accountRepository.findById(accountId);
+            if (existingAccount.isPresent()) {
+                Account account = existingAccount.get();
+                accountRepository.updateAccountStatusByAccountId(accountId, !account.isActive());
+                return true;
+            }
         }
         return false;
     }
 
     @Transactional
-    public boolean updateUserNameById(Long accountId, String username) {
+    public void updateUserNameById(Long accountId, String username) {
         Optional<Account> account = accountRepository.findById(accountId);
         if (account.isPresent()) {
             accountRepository.updateAccountUsernameByAccountId(accountId, username);
-            return true;
         }
-        return false;
     }
 
     @Transactional
-    public boolean updateEmailById(Long accountId, String email) {
+    public void updateEmailById(Long accountId, String email) {
         Optional<Account> account = accountRepository.findById(accountId);
         if (account.isPresent()) {
             accountRepository.updateAccountEmailByAccountId(accountId, email);
-            return true;
         }
-        return false;
     }
 
     @Transactional
-    public boolean updateRoleById(Long accountId, Role role) {
+    public void updateRoleById(Long accountId, Role role) {
         Optional<Account> account = accountRepository.findById(accountId);
         if (account.isPresent()) {
             accountRepository.updateAccountRoleByAccountId(accountId, role);
+        }
+    }
+
+    @Transactional
+    public boolean updateAccInfoById(String authHeader, AccEditRequest accEditRequest) {
+        String token = tokenService.trueToken(authHeader);
+        if (tokenService.isValidToken(token) && tokenService.isADMIN(token)) {
+            if (accEditRequest.getUsername() != null) {
+                updateUserNameById(accEditRequest.getAccountId(), accEditRequest.getUsername());
+            }
+            if (accEditRequest.getEmail() != null) {
+                updateEmailById(accEditRequest.getAccountId(), accEditRequest.getEmail());
+            }
+            if (accEditRequest.getRole() != null) {
+                updateRoleById(accEditRequest.getAccountId(), accEditRequest.getRole());
+                if (accEditRequest.getRole() == Role.SELLER) {
+                    Optional<Account> existingAccount = accountRepository.findById(accEditRequest.getAccountId());
+                    if (existingAccount.isPresent()) {
+                        Account account = existingAccount.get();
+                        messageService.sendUpdateRoleSellerMessage(account.getUsername());
+                    }
+                }
+            }
             return true;
         }
         return false;
     }
 
-    @Transactional
-    public void updateAccInfoById(AccEditRequest accEditRequest) throws Exception {
-        if (accEditRequest.getUsername() != null) {
-            updateUserNameById(accEditRequest.getAccountId(), accEditRequest.getUsername());
-        }
-        if (accEditRequest.getEmail() != null) {
-            updateEmailById(accEditRequest.getAccountId(), accEditRequest.getEmail());
-        }
-        if (accEditRequest.getRole() != null) {
-            updateRoleById(accEditRequest.getAccountId(), accEditRequest.getRole());
-            if (accEditRequest.getRole() == Role.SELLER) {
-                Optional<Account> existingAccount = accountRepository.findById(accEditRequest.getAccountId());
-                if (existingAccount.isPresent()) {
-                    Account account = existingAccount.get();
-                    messageService.sendUpdateRoleSellerMessage(account.getUsername());
-                }
-            }
-        }
-    }
-
-    //tạo Account đồng thời tạo thêm User
-    public String registerAccount(RegisterRequest registerRequest) {
+    //tạo Account đồng thời tạo thêm User nè
+    public Boolean registerAccount(RegisterRequest registerRequest) {
 
         Optional<Account> existingAccount = findByUserName(registerRequest.getUsername());
-        if (existingAccount.isPresent()) {
-            return "Username is already exist!";
+        if (existingAccount.isPresent()) { // Trùng tên rồi ní ơi
+            return false;
         }
 
         Optional<Account> existingEmail = findByEmail(registerRequest.getEmail());
-        if (existingEmail.isPresent()) {
-            return "Email is already exist!";
+        if (existingEmail.isPresent()) { // Trùng email nè ní
+            return false;
         }
 
-        if (!registerRequest.getPassword().equals(registerRequest.getRePassword())) {
-            return "Passwords do not match!";
+        if (!registerRequest.getPassword().equals(registerRequest.getRePassword())) { // Mật khẩu đell giống nhau
+            return false;
         }
 
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
@@ -150,7 +164,7 @@ public class AccountService {
         accountRepository.save(newAccount);
         userService.createUser(newAccount);
 
-        return "Account registered successfully!";
+        return true;
     }
 
     public LoginResponse loginAccount(LoginRequest loginRequest) {
@@ -174,5 +188,21 @@ public class AccountService {
         }
     }
 
+    public boolean logoutAccount(String authHeader) {
+        return tokenService.handleLogout(authHeader);
+    }
 
+    public boolean updateProfile(String authHeader, AccProfileRequest accProfileRequest) { // muốn đổi username email thì phải liên hệ admin đổi còn profile thì có thể tự sửa
+        String token = tokenService.trueToken(authHeader);
+        Optional<Account> existingAccount = findByToken(token);
+        if (tokenService.isValidToken(token) && existingAccount.isPresent()) {
+            if (tokenService.isUSER(token)) {
+                // Chừa chỗ cho UẺ sau này update!
+            }else if (tokenService.isSELLER(token)) {
+                sellerService.updateProfile( existingAccount.get(), accProfileRequest);
+            } // Admin đell có profile nên không cần đổi
+            return true;
+        }
+        return false;
+    }
 }

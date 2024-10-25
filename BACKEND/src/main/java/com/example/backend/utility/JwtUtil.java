@@ -23,7 +23,8 @@ public class JwtUtil {
     @Autowired
     JWTokenRepository jwTokenRepository;
 
-    private final Key SECRET_KEY =  new KeyUtil().getSecretKey();
+//    private final Key SECRET_KEY =  new KeyUtil().getSecretKey();
+    private final Key SECRET_KEY =  KeyUtil.getSecretKey();
 
     public String generateToken(Account account, Role role) {
         Map<String, Object> claims = new HashMap<>();

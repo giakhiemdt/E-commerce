@@ -83,12 +83,11 @@ export const useRegister = () => {
 
 export const useLogout = async () => {
   const response = await fetchLogout();
-  if (response) {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("username");
     sessionStorage.removeItem("SellerInfoStatus");
     window.location.href = "/login";
-  }
+  
   return null;
 }
 

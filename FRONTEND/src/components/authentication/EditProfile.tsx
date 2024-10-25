@@ -18,10 +18,7 @@ const ProfileEdit: React.FC = () => {
     };
 
     const response = await handleUpdateProfile(updateRequest);
-
-    if (response) {
-      window.location.href = "/home";
-    }
+    return response;
   };
 
   return (

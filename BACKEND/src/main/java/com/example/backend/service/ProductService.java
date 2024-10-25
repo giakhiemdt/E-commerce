@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Product;
 import com.example.backend.entity.ProductType;
+import com.example.backend.model.request.frontend.AddProductRequest;
 import com.example.backend.repository.ProductRepository;
 import com.example.backend.repository.ProductTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,4 +43,8 @@ public class ProductService {
     public List<Product> findProductBySellerId(long id) {
         return productRepository.findProductBySellerId(id);
     }
+
+//    public  void saveProduct(AddProductRequest addProductRequest) {
+//        productRepository.save();
+//    }
 }

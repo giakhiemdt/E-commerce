@@ -28,7 +28,7 @@ export const fetchProductList = async() => {
     const token = sessionStorage.getItem("token");
 
     try {
-        const response = await axios.get("http://localhost:8080/api/my-product", 
+        const response = await axios.get("http://localhost:8080/api/products", 
             {
                 headers: {
                     AuthenticationToken: `Bearer ${token}`,                
@@ -42,4 +42,24 @@ export const fetchProductList = async() => {
         return null;
     }
 
+};
+
+export const fetchProductType = async() => {
+    const token = sessionStorage.getItem("token");
+
+    try {
+
+        const response = await axios.get("http://localhost:8080/api/product-types", 
+            {
+                headers: {
+                    AuthenticationToken: `Bearer ${token}`,                
+                }
+            }
+        );
+        console.log(response.data);
+        return response.data;
+    }catch (error){
+        console.log('Error fetching data:', error);
+        return null;
+    }
 };

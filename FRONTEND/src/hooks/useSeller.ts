@@ -18,6 +18,7 @@ export const useUpdateProfile = () => {
                 
                 if (response) {
                     sessionStorage.removeItem("SellerInfoStatus");
+                    
                     window.location.href = "/home";
                 }
                 return response;

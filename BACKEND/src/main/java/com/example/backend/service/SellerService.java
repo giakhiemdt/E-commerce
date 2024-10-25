@@ -66,7 +66,6 @@ public class SellerService {
 
     public boolean checkSellerHasInfo(Account account) {
         if (!existSellerByAccount(account)) {
-            System.out.println("Nihaomamamma");
             messageService.sendSellerNeedInfoMessage(account.getUsername());
             return false;
         }
