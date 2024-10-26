@@ -41,4 +41,11 @@ public class ProductDetail {
     private int sale;
     private String description;
     private String imageUrl;
+
+    public ProductDetail(Product product, long price, String description, String imageUrl) {
+        this.product = product;
+        this.price = price;
+        this.description = description;
+        this.imageUrl = imageUrl;
+    }
 }

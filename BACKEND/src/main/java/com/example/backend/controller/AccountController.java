@@ -5,10 +5,12 @@ import com.example.backend.entity.Role;
 import com.example.backend.model.request.frontend.AccEditRequest;
 import com.example.backend.model.request.frontend.AccIsActiveRequest;
 import com.example.backend.model.request.frontend.AccProfileRequest;
+import com.example.backend.model.response.AccountEntitiesResponse;
 import com.example.backend.service.AccountService;
 import com.example.backend.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,15 +29,13 @@ public class AccountController {
     private TokenService tokenService;
 
     @GetMapping("/accounts") // Đường dẫn của ADMIN
-    public ResponseEntity<Map<Role, List<Account>>> getAllAccounts(@RequestHeader("AuthenticationToken") String token) {
-        Map<Role, List<Account>> response = accountService.findAllByRole(token);
-        if (!response.isEmpty()) { // Trả về kiểu gì cũng có tài khoản ADMIN nên map đell bao giờ rỗng, rỗng là chỉ khi có thằng nào đó muốn lấy bất hợp pháp thôi!
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().build();
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Map<Role, List<AccountEntitiesResponse>>> getAllAccounts() { // Admin chỉ có 1 nên dell cần kiểm tra nữa!!!
+        return ResponseEntity.ok(accountService.findAllByRole());
     }
 
     @PostMapping("/change-account-status") // Đường dẫn của ADMIN luôn nè
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Boolean> changeAccountStatus(@RequestHeader("AuthenticationToken") String token, @RequestBody AccIsActiveRequest accIsActiveRequest) {
         if (accountService.updateStatusById(token, accIsActiveRequest.getAccountId())) {
             return ResponseEntity.ok().build();

@@ -51,7 +51,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductByName(name));
     }
 
-    @GetMapping("/products") // Này là lấy danh sách sản phẩm, cái này SELLER và ADMIN dùng được
+    @GetMapping("/my-products") // Lấy danh sách sản phẩm của SELLER. Cái này chỉ có Seller dùng được!!!
+    public ResponseEntity<List<Product>> getMyProducts(@RequestHeader("AuthenticationToken") String token) {
+        List<Product> products = productService.getMyProducts(token);
+        if (!products.isEmpty()) {
+            return ResponseEntity.ok(products);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/products") // Này là lấy danh sách sản phẩm, cái này ai cũng lấy được
     public ResponseEntity<List<Product>> getAllProducts(@RequestHeader("AuthenticationToken") String token) {
         if (tokenService.isValidToken(tokenService.trueToken(token))) {
             Optional<Account> existingAccount = accountService.findByUserName(jwtUtil.extractName(tokenService.trueToken(token)));
@@ -69,9 +78,12 @@ public class ProductController {
         return ResponseEntity.badRequest().build();
     }
 
-//    @PostMapping("/add-product")
-//    public ResponseEntity<Boolean> addProduct(@RequestHeader("AuthenticationToken") String token, @RequestBody AddProductRequest addProductRequest) {
-//
-//    }
+    @PostMapping("/add-product") //Theo t chỉ có SELLER mới có thể tạo Product thôi
+    public ResponseEntity<Boolean> addProduct(@RequestHeader("AuthenticationToken") String token, @RequestBody AddProductRequest addProductRequest) {
+        if (productService.createProduct(tokenService.trueToken(token), addProductRequest)) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
 }

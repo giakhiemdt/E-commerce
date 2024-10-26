@@ -64,4 +64,17 @@ public class Product {
     @JsonIgnore
     @JsonManagedReference
     private List<FeedBack> feedBacks;
+
+
+    public  Product(Seller seller, ProductType productType, String name, int quantity) {
+        this.seller = seller;
+        this.productType = productType;
+        this.name = name;
+        this.quantity = quantity;
+        this.isActive = true;
+    }
+
+    public Product() {
+
+    }
 }

@@ -6,6 +6,7 @@ import com.example.backend.model.request.frontend.AccEditRequest;
 import com.example.backend.model.request.frontend.AccProfileRequest;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
+import com.example.backend.model.response.AccountEntitiesResponse;
 import com.example.backend.model.response.LoginResponse;
 import com.example.backend.repository.AccountRepository;
 import com.example.backend.utility.JwtUtil;
@@ -15,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AccountService {
@@ -60,22 +58,27 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
-    public List<Account> findByRole(Role role) {
-        return accountRepository.findByRole(role);
+    public List<AccountEntitiesResponse> findByRole(Role role) {
+        List<Account> accounts = accountRepository.findByRole(role);
+        List<AccountEntitiesResponse> responses = new ArrayList<>();
+        for (Account account : accounts) {
+            responses.add(new AccountEntitiesResponse(
+                    account.getId(), account.getUsername(),
+                    account.getEmail(), account.getRole(),
+                    account.getCreatedDate(), account.isActive()));
+        }
+        return responses;
     }
 
     public Optional<Account> findByToken(String token) {
         return findByUserName(jwtUtil.extractName(tokenService.trueToken(token)));
     }
 
-    public Map<Role, List<Account>> findAllByRole(String authHeader) {
-        String token = tokenService.trueToken(authHeader);
-        Map<Role, List<Account>> map = new HashMap<>();
-        if (tokenService.isValidToken(token) && tokenService.isADMIN(token)) {
-            map.put(Role.ADMIN, findByRole(Role.ADMIN));
-            map.put(Role.SELLER, findByRole(Role.SELLER));
-            map.put(Role.USER, findByRole(Role.USER));
-        }
+    public Map<Role, List<AccountEntitiesResponse>> findAllByRole() {
+        Map<Role, List<AccountEntitiesResponse>> map = new HashMap<>();
+        map.put(Role.ADMIN, findByRole(Role.ADMIN));
+        map.put(Role.SELLER, findByRole(Role.SELLER));
+        map.put(Role.USER, findByRole(Role.USER));
         return map;
     }
 

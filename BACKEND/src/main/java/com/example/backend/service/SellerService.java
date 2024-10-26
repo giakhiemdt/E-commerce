@@ -24,6 +24,10 @@ public class SellerService {
         return sellerRepository.existsByAccount(account);
     }
 
+    public Seller getSellerByUserName(String usserName) {
+        return sellerRepository.getSellerByUserName(usserName);
+    }
+
     @Transactional
     public void updateByAccountIdAndFullName(long accountId, String fullName) {
         sellerRepository.updateSellerByAccountIdAndFullname(fullName, accountId);

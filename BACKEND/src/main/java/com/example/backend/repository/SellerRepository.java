@@ -31,7 +31,10 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
     @Query("UPDATE Seller s SET s.address = :address WHERE s.account.id = :accountId")
     public void updateSellerByAccountIdAndAddress(@Param("address") String fullname, @Param("accountId") long accountId);
 
-    @Query("SELECT s FROM Seller s WHERE s.account.id = : accountId")
+    @Query("SELECT s FROM Seller s WHERE s.account.id = :accountId")
     public Seller getSellerByAccountId(@Param("accountId") long accountId);
+
+    @Query("SELECT s FROM Seller s WHERE s.account.username = :userName")
+    public Seller getSellerByUserName(@Param("userName") String userName);
 
 }

@@ -64,9 +64,10 @@ public class TokenService {
         return false;
     }
 
+    @Transactional
     public boolean isValidToken(String token) {
         String name = jwtUtil.extractName(token);
-        if (aRepo.findByUsername(name).isPresent() && jwTokenRepository.existsByToken(token)) {
+        if (aRepo.findByUsername(name).isPresent() && checkWhiteList(token)) {
             return jwtUtil.validateToken(token, name);
         }
         return false;
