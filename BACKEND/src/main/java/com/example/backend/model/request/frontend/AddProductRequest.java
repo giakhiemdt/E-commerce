@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class AddProductRequest {
-    long typeId;
-    String name;
-    int quantity;
-    int price;
-    String description;
-    String imageUrl;
+    private long typeId;
+    private String name;
+    private int quantity;
+    private int price;
+    private String description;
+    private String imageUrl;
 }

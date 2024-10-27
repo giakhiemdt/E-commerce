@@ -1,10 +1,10 @@
 package com.example.backend.controller;
 
-import com.example.backend.entity.Account;
 import com.example.backend.entity.Product;
-import com.example.backend.entity.ProductType;
-import com.example.backend.entity.Seller;
 import com.example.backend.model.request.frontend.AddProductRequest;
+import com.example.backend.model.response.ProductDetailResponse;
+import com.example.backend.model.response.ProductTypesResponse;
+import com.example.backend.model.response.ProductResponse;
 import com.example.backend.service.AccountService;
 import com.example.backend.service.ProductService;
 import com.example.backend.service.SellerService;
@@ -12,10 +12,11 @@ import com.example.backend.service.TokenService;
 import com.example.backend.utility.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -36,54 +37,49 @@ public class ProductController {
     @Autowired
     private SellerService sellerService;
 
+    //PUBLIC API ~~~Yay!!!
+
+    // Này là lấy danh sách sản phẩm, cái này ai cũng lấy được
+    // Lưu ý là ADMIN và SELLER sẽ không sử dụng đường dẫn này!!!
+    @GetMapping("/products")
+    public ResponseEntity<Map<String, List<ProductResponse>>> getAllProducts() {
+        return ResponseEntity.ok(productService.getAllProductSplitWithTypeId());
+    }
+
     @GetMapping("/product-types") // Cái này thì thằng nào lấy cũng được!
-    public ResponseEntity<List<ProductType>> getProductTypes() {
-        return ResponseEntity.ok(productService.getAllProductType());
+    public ResponseEntity<List<ProductTypesResponse>> getProductTypes() {
+        return ResponseEntity.ok(productService.getProductTypes());
     }
 
-    @GetMapping("/productid") // Này là xem thông tin chi tiết sản phẩm nhưng mà t chưa viết frontend
-    public ResponseEntity<Optional<Product>> getProductById(@RequestParam long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+   // Này là xem thông tin chi tiết sản phẩm nhưng mà t chưa viết frontend
+   // Giờ viết nè!!
+   @GetMapping("/product-detail")
+   public ResponseEntity<ProductDetailResponse> getProductById(@RequestParam long id) {
+        return ResponseEntity.ok(productService.getProductDetail(id));
     }
 
-    @GetMapping("/productname") // T dự định để tìm kiếm sản phẩm nhưng mà chưa viết frontend
-    public ResponseEntity<List<Product>> getProductByName(@RequestParam String name) {
-        return ResponseEntity.ok(productService.getProductByName(name));
+    //Thằng này dùng để kiếm product theo keyword, t cũng không biết nó chạy ổn không nữa ~~
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String keyword) {
+        return ResponseEntity.ok(productService.searchProduct(keyword));
     }
+
+    // SELLER API Noooo!!!
 
     @GetMapping("/my-products") // Lấy danh sách sản phẩm của SELLER. Cái này chỉ có Seller dùng được!!!
-    public ResponseEntity<List<Product>> getMyProducts(@RequestHeader("AuthenticationToken") String token) {
-        List<Product> products = productService.getMyProducts(token);
-        if (!products.isEmpty()) {
-            return ResponseEntity.ok(products);
-        }
-        return ResponseEntity.badRequest().build();
+    @PreAuthorize("hasAuthority('SELLER')")
+    public ResponseEntity<List<Product>> getMyProducts() {
+        return ResponseEntity.ok(productService.getMyProducts());
     }
 
-    @GetMapping("/products") // Này là lấy danh sách sản phẩm, cái này ai cũng lấy được
-    public ResponseEntity<List<Product>> getAllProducts(@RequestHeader("AuthenticationToken") String token) {
-        if (tokenService.isValidToken(tokenService.trueToken(token))) {
-            Optional<Account> existingAccount = accountService.findByUserName(jwtUtil.extractName(tokenService.trueToken(token)));
-            if (existingAccount.isPresent()) {
-                if (tokenService.isADMIN(tokenService.trueToken(token))) { // Nếu là admin thì lấy danh sách tất cả sản phẩm
-                    return ResponseEntity.ok(productService.getAllProduct());
-                }else if (tokenService.isSELLER(tokenService.trueToken(token))) { // Nếu là người bán thì lấy danh sách sản phẩm đăng bán của người đó
-                    if (sellerService.checkSellerHasInfo(existingAccount.get())) { // cái này phải đặt trong tất cả hành động của Seller
-                        Seller seller = sellerService.getSellerByAccountId(existingAccount.get().getId());
-                        return ResponseEntity.ok(productService.findProductBySellerId(seller.getId()));
-                    }
-                }
-            }
-        }
-        return ResponseEntity.badRequest().build();
-    }
+
+
 
     @PostMapping("/add-product") //Theo t chỉ có SELLER mới có thể tạo Product thôi
-    public ResponseEntity<Boolean> addProduct(@RequestHeader("AuthenticationToken") String token, @RequestBody AddProductRequest addProductRequest) {
-        if (productService.createProduct(tokenService.trueToken(token), addProductRequest)) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+    @PreAuthorize("hasAuthority('SELLER')")
+    public ResponseEntity<Boolean> addProduct(@RequestBody AddProductRequest addProductRequest) {
+        productService.createProduct(addProductRequest);
+        return ResponseEntity.ok().build();
     }
 
 }
