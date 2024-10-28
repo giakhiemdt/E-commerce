@@ -2,7 +2,8 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Seller;
-import com.example.backend.model.request.frontend.ChangeAccountProfileRequest;
+import com.example.backend.model.request.frontend.seller.UpdateSellerProfileRequest;
+import com.example.backend.model.response.seller.SellerProfileResponse;
 import com.example.backend.repository.SellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,11 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SellerService {
 
-    @Autowired
-    private SellerRepository sellerRepository;
+    private final SellerRepository sellerRepository;
 
     @Autowired
-    private MessageService messageService;
+    public SellerService(SellerRepository sellerRepository) {
+        this.sellerRepository = sellerRepository;
+    }
 
     public boolean existSellerByAccount(Account account) {
         return sellerRepository.existsByAccount(account);
@@ -26,51 +28,48 @@ public class SellerService {
     }
 
     @Transactional
-    public void updateByAccountIdAndFullName(long accountId, String fullName) {
-        sellerRepository.updateSellerByAccountIdAndFullname(fullName, accountId);
+    public void updateSellerFullName(String fullName, Seller seller) {
+        sellerRepository.updateSellerFullNameBySeller(fullName, seller);
     }
 
     @Transactional
-    public void updateByAccountIdAndPhone(long accountId, String phone) {
-        sellerRepository.updateSellerByAccountIdAndPhone(phone, accountId);
+    public void updateSellerPhone(String phone, Seller seller) {
+        sellerRepository.updateSellerPhoneBySeller(phone, seller);
     }
 
     @Transactional
-    public void updateByAccountIdAndAddress(long accountId, String address) {
-        sellerRepository.updateSellerByAccountIdAndAddress(address, accountId);
+    public void updateSellerAddress(String address, Seller seller) {
+        sellerRepository.updateSellerAddressBySeller(address, seller);
     }
 
-    public void createSeller(Account account, ChangeAccountProfileRequest changeAccountProfileRequest) {
-        sellerRepository.save(new Seller(account, changeAccountProfileRequest.getFullname(), changeAccountProfileRequest.getPhone(), changeAccountProfileRequest.getAddress()));
+    public void createSeller(Account account, UpdateSellerProfileRequest request) {
+        sellerRepository.save(new Seller(account, request.getFullName(), request.getPhone(), request.getAddress()));
+    }
+
+    // Copy thằng trên nhưng đại khái là nó dùng để lấy pro file Seller á!
+    public SellerProfileResponse getSellerProfile(Account account) {
+        return new SellerProfileResponse(
+                account.getSeller().getFullname(),
+                account.getSeller().getPhone(),
+                account.getSeller().getAddress()
+        );
     }
 
     @Transactional
-    public void updateProfile(Account account, ChangeAccountProfileRequest changeAccountProfileRequest) {
-        if (!sellerRepository.existsByAccount(account)) {
-            createSeller(account, changeAccountProfileRequest);
-        }else {
-            if (changeAccountProfileRequest.getFullname() != null) {
-                updateByAccountIdAndFullName(account.getId(), changeAccountProfileRequest.getFullname());
-            }
-            if (changeAccountProfileRequest.getPhone() != null) {
-                updateByAccountIdAndPhone(account.getId(), changeAccountProfileRequest.getPhone());
-            }
-            if (changeAccountProfileRequest.getAddress() != null) {
-                updateByAccountIdAndAddress(account.getId(), changeAccountProfileRequest.getAddress());
-            }
+    public void updateSellerProfile(UpdateSellerProfileRequest request, Account account) {
+        if (existSellerByAccount(account)) {
+            createSeller(account, request);
         }
-    }
-
-    public Seller getSellerByAccountId(long accountId) {
-        return sellerRepository.getSellerByAccountId(accountId);
-    }
-
-    public boolean checkSellerHasInfo(Account account) {
-        if (!existSellerByAccount(account)) {
-            messageService.sendSellerNeedInfoMessage(account.getUsername());
-            return false;
+        Seller seller = account.getSeller();
+        if (request.getFullName() != null) {
+            updateSellerFullName(request.getFullName(), seller);
         }
-        return true;
+        if (request.getPhone() != null) {
+            updateSellerPhone(request.getPhone(), seller);
+        }
+        if (request.getAddress() != null) {
+            updateSellerAddress(request.getAddress(), seller);
+        }
     }
 
 }

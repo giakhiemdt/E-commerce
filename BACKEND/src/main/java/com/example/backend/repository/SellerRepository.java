@@ -1,7 +1,6 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Account;
-import com.example.backend.entity.Product;
 import com.example.backend.entity.Seller;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,23 +17,21 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Seller s SET s.fullname = :fullname WHERE s.account.id = :accountId")
-    public void updateSellerByAccountIdAndFullname(@Param("fullname") String fullname, @Param("accountId") long accountId);
+    @Query("UPDATE Seller s SET s.fullname = :fullname WHERE s = :seller")
+    void updateSellerFullNameBySeller(@Param("fullname") String fullname, @Param("seller") Seller seller);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Seller s SET s.phone = :phone WHERE s.account.id = :accountId")
-    public void updateSellerByAccountIdAndPhone(@Param("phone") String phone, @Param("accountId") long accountId);
+    @Query("UPDATE Seller s SET s.phone = :phone WHERE s = :seller")
+    void updateSellerPhoneBySeller(@Param("phone") String phone, @Param("seller") Seller seller);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Seller s SET s.address = :address WHERE s.account.id = :accountId")
-    public void updateSellerByAccountIdAndAddress(@Param("address") String fullname, @Param("accountId") long accountId);
+    @Query("UPDATE Seller s SET s.address = :address WHERE s = :seller")
+    void updateSellerAddressBySeller(@Param("address") String fullname, @Param("seller") Seller seller);
 
-    @Query("SELECT s FROM Seller s WHERE s.account.id = :accountId")
-    public Seller getSellerByAccountId(@Param("accountId") long accountId);
 
     @Query("SELECT s FROM Seller s WHERE s.account.username = :userName")
-    public Seller getSellerByUserName(@Param("userName") String userName);
+    Seller getSellerByUserName(@Param("userName") String userName);
 
 }

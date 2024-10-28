@@ -2,18 +2,21 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Role;
-import com.example.backend.model.request.frontend.admin.ChangeAccountInformationRequest;
-import com.example.backend.model.request.frontend.ChangeAccountProfileRequest;
+import com.example.backend.model.request.frontend.admin.UpdateAccountInformationRequest;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
-import com.example.backend.model.response.admin.AccountListResponse;
+import com.example.backend.model.request.frontend.seller.UpdateSellerProfileRequest;
+import com.example.backend.model.request.frontend.user.UpdateUserProfileRequest;
+import com.example.backend.model.response.admin.AdminAccountResponse;
 import com.example.backend.model.response.LoginResponse;
+import com.example.backend.model.response.AccountInformationResponse;
+import com.example.backend.model.response.seller.SellerProfileResponse;
+import com.example.backend.model.response.user.UserProfileResponse;
 import com.example.backend.repository.AccountRepository;
 import com.example.backend.utility.JwtUtil;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,41 +26,37 @@ import java.util.*;
 @Service
 public class AccountService {
 
-    @Autowired
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final UserService userService;
+    private final MessageService messageService;
+    private final TokenService tokenService;
+    private final SellerService sellerService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private SellerService sellerService;
-
-    public Optional<Account> findById(Long id) {
-        return accountRepository.findById(id);
+    public AccountService(AccountRepository accountRepository,
+                          PasswordEncoder passwordEncoder,
+                          JwtUtil jwtUtil,
+                          UserService userService,
+                          MessageService messageService,
+                          TokenService tokenService,
+                          SellerService sellerService) {
+        this.accountRepository = accountRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.userService = userService;
+        this.messageService = messageService;
+        this.tokenService = tokenService;
+        this.sellerService = sellerService;
     }
 
-    public Optional<Account> findByUserName(String username) {
+    public Optional<Account> getAccountByUserName(String username) {
         return accountRepository.findByUsername(username);
     }
 
-    public Optional<Account> findByEmail(String email) {
+    public Optional<Account> getAccountByEmail(String email) {
         return accountRepository.findByEmail(email);
-    }
-
-    public List<Account> findAll() {
-        return accountRepository.findAll();
     }
 
     public boolean isActive(long id) {
@@ -66,25 +65,7 @@ public class AccountService {
                 .orElse(false);
     }
 
-    public List<AccountListResponse> findByRole(Role role) {
-        List<Account> accounts = accountRepository.findByRole(role);
-        List<AccountListResponse> responses = new ArrayList<>();
-        for (Account account : accounts) {
-            responses.add(new AccountListResponse(
-                    account.getId(), account.getUsername(),
-                    account.getEmail(), account.getRole(),
-                    account.getCreatedDate(), account.isActive()));
-        }
-        return responses;
-    }
 
-    public Map<Role, List<AccountListResponse>> findAllByRole() {
-        Map<Role, List<AccountListResponse>> map = new HashMap<>();
-        map.put(Role.ADMIN, findByRole(Role.ADMIN));
-        map.put(Role.SELLER, findByRole(Role.SELLER));
-        map.put(Role.USER, findByRole(Role.USER));
-        return map;
-    }
 
     @Transactional
     public void updateStatusById(Long accountId) {
@@ -117,36 +98,17 @@ public class AccountService {
         }
     }
 
-    @Transactional
-    public void updateAccInfoById(ChangeAccountInformationRequest request) {
-        if (request.isActive() != isActive(request.getAccountId())) {
-            updateStatusById(request.getAccountId());
-        }
-        if (request.getUsername() != null) {
-            updateUserNameById(request.getAccountId(), request.getUsername());
-        }
-        if (request.getEmail() != null) {
-            updateEmailById(request.getAccountId(), request.getEmail());
-        }
-        if (request.getRole() != null) {
-            updateRoleById(request.getAccountId(), request.getRole());
-            if (request.getRole() == Role.SELLER) {
-                Optional<Account> existingAccount = accountRepository.findById(request.getAccountId());
-                existingAccount.ifPresent(account -> messageService.sendUpdateRoleSellerMessage(account.getUsername()));
-            }
-        }
-
-    }
+    // AUTHENTICATION ở đây!
 
     //tạo Account đồng thời tạo thêm User nè
     public Boolean registerAccount(RegisterRequest registerRequest) {
 
-        Optional<Account> existingAccount = findByUserName(registerRequest.getUsername());
+        Optional<Account> existingAccount = getAccountByUserName(registerRequest.getUsername());
         if (existingAccount.isPresent()) { // Trùng tên rồi ní ơi
             return false;
         }
 
-        Optional<Account> existingEmail = findByEmail(registerRequest.getEmail());
+        Optional<Account> existingEmail = getAccountByEmail(registerRequest.getEmail());
         if (existingEmail.isPresent()) { // Trùng email nè ní
             return false;
         }
@@ -164,7 +126,7 @@ public class AccountService {
     }
 
     public LoginResponse loginAccount(LoginRequest loginRequest) {
-        Optional<Account> existingAccount = findByUserName(loginRequest.getUsername());
+        Optional<Account> existingAccount = getAccountByUserName(loginRequest.getUsername());
         if (existingAccount.isPresent()) {
             Account account = existingAccount.get();
 
@@ -188,20 +150,95 @@ public class AccountService {
         return tokenService.handleLogout(authHeader);
     }
 
-    public void updateProfile(ChangeAccountProfileRequest changeAccountProfileRequest) { // muốn đổi username email thì phải liên hệ admin đổi còn profile thì có thể tự sửa
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String username = authentication.getName();
-        String role = authentication.getAuthorities().iterator().next().getAuthority();
+    // Dùng chung USER với SELLER!!!
 
-        Optional<Account> existingAccount = findByUserName(username);
-
-        if (existingAccount.isPresent()) {
-            if (role.equals("USER")) {
-                // Chừa chỗ cho UẺ sau này update!
-            }else if (role.equals("SELLER")) {
-                sellerService.updateProfile( existingAccount.get(), changeAccountProfileRequest);
-            } // Admin đell có profile nên không cần đổi
-        }
+    //Lấy tài khoản người dùng nà ~~
+    // User với Seller xài chung nha!
+    public AccountInformationResponse getAccountInformation() {
+        String username  = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = getAccountByUserName(username);
+        return existingAccount.map(account -> new AccountInformationResponse(username,
+                account.getEmail(),
+                account.getCreatedDate())).orElse(null);
     }
+
+    // USER AAAAA!!!!
+
+    // Lấy bờ rồ file nữa nè --- mệt vl!!
+    public UserProfileResponse getUserProfile() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = getAccountByUserName(username);
+        return existingAccount.map(userService::getUserProfile).orElse(null);
+    }
+
+    //Cập nhật thông tin mới cho profile nè!
+    @Transactional
+    public void updateUserProfile(UpdateUserProfileRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = getAccountByUserName(username);
+        existingAccount.ifPresent(account ->
+                userService.updateUserProfile(request, account));
+    }
+
+    // SELLELLERRRRR
+
+    // Copy thằng trên nhưng đại khái là nó dùng để lấy pro file Seller á!
+    public SellerProfileResponse getSellerProfile() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = getAccountByUserName(username);
+        return existingAccount.map(sellerService::getSellerProfile).orElse(null);
+    }
+
+    // Copy thằng trên của thằng trên nữa nè
+    // Cập nhật profile cho seller
+    public void updateSellerProfile(UpdateSellerProfileRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = getAccountByUserName(username);
+        existingAccount.ifPresent(account ->
+                sellerService.updateSellerProfile(request, account));
+
+    }
+
+    // AAADMIN!!
+
+    // Hai thằng này chung là lấy account nha!!!
+    public List<AdminAccountResponse> findByRole(Role role) {
+        List<Account> accounts = accountRepository.findByRole(role);
+        return accounts.stream().map(account -> new AdminAccountResponse(
+                account.getId(), account.getUsername(),
+                account.getEmail(), account.getRole(),
+                account.getCreatedDate(), account.isActive())
+        ).toList();
+    }
+    // Thằng này nữa nè!!
+    public Map<Role, List<AdminAccountResponse>> findAllByRole() {
+        Map<Role, List<AdminAccountResponse>> map = new HashMap<>();
+        map.put(Role.ADMIN, findByRole(Role.ADMIN));
+        map.put(Role.SELLER, findByRole(Role.SELLER));
+        map.put(Role.USER, findByRole(Role.USER));
+        return map;
+    }
+
+    @Transactional
+    public void updateAccountInformation(UpdateAccountInformationRequest request) {
+        if (request.isActive() != isActive(request.getAccountId())) { // Nói chứ t cũng không biết tại sao mình lại đặt cái này ở đầu nữa ¯\_(ツ)_/¯
+            updateStatusById(request.getAccountId());
+        }
+        if (request.getUsername() != null) {
+            updateUserNameById(request.getAccountId(), request.getUsername());
+        }
+        if (request.getEmail() != null) {
+            updateEmailById(request.getAccountId(), request.getEmail());
+        }
+        if (request.getRole() != null) {
+            updateRoleById(request.getAccountId(), request.getRole());
+            if (request.getRole() == Role.SELLER) {
+                Optional<Account> existingAccount = accountRepository.findById(request.getAccountId());
+                existingAccount.ifPresent(account -> messageService.sendUpdateRoleSellerMessage(account.getUsername()));
+            }
+        }
+
+    }
+
 }

@@ -1,11 +1,11 @@
-package com.example.backend.model.response.seller;
+package com.example.backend.model.response.admin;
 
 import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Data
-public class SellerProductResponse {
+public class AdminProductResponse {
     private long id;
     private String name;
     private String productType;
@@ -18,7 +18,7 @@ public class SellerProductResponse {
     private String description;
     private String imageUrl;
 
-    public SellerProductResponse(long id, String name, String productType, long quantity,
+    public AdminProductResponse(long id, String name, String productType, long quantity,
                                  boolean active, long price, String discount, Timestamp postDate, long sale, String description, String imageUrl) {
         this.id = id;
         this.name = name;
