@@ -1,11 +1,13 @@
 package com.example.backend.service;
 
+import com.example.backend.entity.Account;
 import com.example.backend.entity.JWToken;
 import com.example.backend.repository.AccountRepository;
 import com.example.backend.repository.JWTokenRepository;
 import com.example.backend.utility.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -32,6 +34,11 @@ public class TokenService {
         jwTokenRepository.deleteByToken(token);
     }
 
+    @Transactional
+    public void deleteByAccountId(long accountId) {
+        jwTokenRepository.deleteByAccountId(accountId);
+    }
+
     public boolean existToken(String token) { // Kiểm tra token có tồn tại hay không, cái này không kiểm tra thời gian hết hạn đâu
         return jwTokenRepository.existsByToken(token);
     }
@@ -55,13 +62,10 @@ public class TokenService {
     }
 
     @Transactional
-    public boolean handleLogout(String authHeader) {
-        String token = trueToken(authHeader);
-        if (checkWhiteList(token)) {
-            deleteToken(token);
-            return true;
-        }
-        return false;
+    public void handleLogout() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = aRepo.findByUsername(username);
+        existingAccount.ifPresent(account -> deleteByAccountId(account.getId()));
     }
 
     @Transactional

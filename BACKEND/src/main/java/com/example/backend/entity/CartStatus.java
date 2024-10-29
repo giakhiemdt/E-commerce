@@ -31,7 +31,7 @@ public class CartStatus {
     )
     @JsonBackReference
     private Cart cart;
-    private String status;
+    private Status status;
     private Timestamp createdDate;
     private String notes;
     @OneToOne(

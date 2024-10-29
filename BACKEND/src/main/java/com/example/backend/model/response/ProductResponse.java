@@ -3,7 +3,7 @@ package com.example.backend.model.response;
 import lombok.Data;
 
 @Data
-public class ProductsResponse {
+public class ProductResponse {
     private long id;
     private String name;
     private String productType;
@@ -11,7 +11,7 @@ public class ProductsResponse {
     private String discount;
     private String imageUrl;
 
-    public ProductsResponse(long id, String name, String productType, long price, String discount, String imageUrl) {
+    public ProductResponse(long id, String name, String productType, long price, String discount, String imageUrl) {
         this.id = id;
         this.name = name;
         this.productType = productType;

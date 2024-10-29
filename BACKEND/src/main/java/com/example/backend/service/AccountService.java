@@ -27,27 +27,18 @@ import java.util.*;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
     private final UserService userService;
     private final MessageService messageService;
-    private final TokenService tokenService;
     private final SellerService sellerService;
 
     @Autowired
     public AccountService(AccountRepository accountRepository,
-                          PasswordEncoder passwordEncoder,
-                          JwtUtil jwtUtil,
                           UserService userService,
                           MessageService messageService,
-                          TokenService tokenService,
                           SellerService sellerService) {
         this.accountRepository = accountRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.messageService = messageService;
-        this.tokenService = tokenService;
         this.sellerService = sellerService;
     }
 
@@ -64,8 +55,6 @@ public class AccountService {
                 .map(Account::isActive)
                 .orElse(false);
     }
-
-
 
     @Transactional
     public void updateStatusById(Long accountId) {
@@ -98,56 +87,9 @@ public class AccountService {
         }
     }
 
-    // AUTHENTICATION ở đây!
-
-    //tạo Account đồng thời tạo thêm User nè
-    public Boolean registerAccount(RegisterRequest registerRequest) {
-
-        Optional<Account> existingAccount = getAccountByUserName(registerRequest.getUsername());
-        if (existingAccount.isPresent()) { // Trùng tên rồi ní ơi
-            return false;
-        }
-
-        Optional<Account> existingEmail = getAccountByEmail(registerRequest.getEmail());
-        if (existingEmail.isPresent()) { // Trùng email nè ní
-            return false;
-        }
-
-        if (!registerRequest.getPassword().equals(registerRequest.getRePassword())) { // Mật khẩu đell giống nhau
-            return false;
-        }
-
-        String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
-        Account newAccount = new Account(registerRequest.getUsername(), registerRequest.getEmail(), encodedPassword, Role.USER);
-        accountRepository.save(newAccount);
-        userService.createUser(newAccount);
-
-        return true;
-    }
-
-    public LoginResponse loginAccount(LoginRequest loginRequest) {
-        Optional<Account> existingAccount = getAccountByUserName(loginRequest.getUsername());
-        if (existingAccount.isPresent()) {
-            Account account = existingAccount.get();
-
-            if (!account.isActive()) {
-                throw new RuntimeException("Account is baned!");
-            }
-
-            if (passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
-                String token = jwtUtil.generateToken(account, account.getRole());
-
-                return new LoginResponse(account.getUsername(), token);
-            }else {
-                throw new RuntimeException("Invalid password!");
-            }
-        }else{
-            throw new RuntimeException("Username not found!");
-        }
-    }
-
-    public boolean logoutAccount(String authHeader) {
-        return tokenService.handleLogout(authHeader);
+    public void saveAccount(Account account) {
+        accountRepository.save(account);
+        userService.createUser(account);
     }
 
 

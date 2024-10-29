@@ -3,11 +3,12 @@ package com.example.backend.service;
 import com.example.backend.entity.Product;
 import com.example.backend.entity.ProductDetail;
 import com.example.backend.entity.ProductType;
+import com.example.backend.entity.Seller;
 import com.example.backend.model.request.frontend.seller.AddProductRequest;
 import com.example.backend.model.request.frontend.seller.DeleteProductRequest;
 import com.example.backend.model.request.frontend.seller.UpdateProductRequest;
 import com.example.backend.model.response.ProductDetailResponse;
-import com.example.backend.model.response.ProductsResponse;
+import com.example.backend.model.response.ProductResponse;
 import com.example.backend.model.response.ProductTypesResponse;
 import com.example.backend.model.response.admin.AdminProductResponse;
 import com.example.backend.model.response.seller.SellerProductResponse;
@@ -57,6 +58,10 @@ public class ProductService {
     //Lấy product theo id nè!
     public Optional<Product> getProductById(long id) {
         return productRepository.findAllById(id);
+    }
+
+    public List<Product> getSellerProduct(Seller seller) {
+        return productRepository.findAllBySeller(seller);
     }
 
     //Cái này là lưu thông tin chi tiết của sản phẩm
@@ -129,23 +134,23 @@ public class ProductService {
     }
 
     // Còn cái này thì liên kết với ông products để lấy danh sách sản phẩm, tất nhiên sẽ phân loại theo loại sản phẩm
-    public Map<String, List<ProductsResponse>> getAllProductSplitWithTypeId() { //Product sẽ tự đông phân loại theo type nha!
-        Map<String, List<ProductsResponse>> map = new HashMap<>();
+    public Map<String, List<ProductResponse>> getAllProductSplitWithTypeId() { //Product sẽ tự đông phân loại theo type nha!
+        Map<String, List<ProductResponse>> map = new HashMap<>();
 
         List<ProductType> productTypes = getAllProductType();
         for (ProductType productType : productTypes) {
             List<Product> products = productType.getProducts();
-            List<ProductsResponse> productsResponse = products.stream()
+            List<ProductResponse> productResponse = products.stream()
                     .filter(Product::isActive) // Nếu bị Seller hoặc Admin đóng thì cũng dell hiện ra!!!
                     .filter(product -> product.getQuantity() > 0) //Nếu hết hàng thì không hiển thị ra
-                    .map(product -> new ProductsResponse(
+                    .map(product -> new ProductResponse(
                     product.getId(), product.getName(),
                     productType.getName(),
                     product.getProductDetail().getPrice(),
                     product.getProductDetail().getDiscount(),
                     product.getProductDetail().getImageUrl())).toList();
 
-            map.put(productType.getName(), productsResponse);
+            map.put(productType.getName(), productResponse);
         }
 
         return map;
@@ -162,12 +167,12 @@ public class ProductService {
                 ).orElse(null);
     }
 
-    public List<ProductsResponse> searchProduct(String keyWord) {
+    public List<ProductResponse> searchProduct(String keyWord) {
         List<Product> products = getProductsContainKeyword(keyWord);
         return products.stream()
                 .filter(Product::isActive) // Này copy của thằng trên với thằng trên nữa!!
                 .filter(product -> product.getQuantity() > 0)
-                .map(product -> new ProductsResponse(
+                .map(product -> new ProductResponse(
                 product.getId(), product.getName(),
                 product.getProductType().getName(),
                 product.getProductDetail().getPrice(),

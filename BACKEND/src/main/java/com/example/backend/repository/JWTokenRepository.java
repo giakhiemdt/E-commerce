@@ -13,15 +13,19 @@ import java.util.Optional;
 @Repository
 public interface JWTokenRepository extends JpaRepository<JWToken, Long> {
 
-    public Optional<JWToken> findByToken(String token);
+    Optional<JWToken> findByToken(String token);
 
-    public List<JWToken> findAllByAccountId(Long accountId);
+    List<JWToken> findAllByAccountId(Long accountId);
 
-    public boolean existsByToken(String token);
+    boolean existsByToken(String token);
 
     @Modifying
     @Transactional
-    public void deleteByToken(String token);
+    void deleteByToken(String token);
+
+    @Modifying
+    @Transactional
+    void deleteByAccountId(Long accountId);
 
     @Modifying
     @Transactional

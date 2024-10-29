@@ -37,4 +37,14 @@ public class Add {
             nullable = false
     )
     private int quantity;
+    private OrderStatus orderStatus;
+
+    public Add() {}
+
+    public Add(Cart cart, Product product, int quantity, OrderStatus orderStatus) {
+        this.cart = cart;
+        this.quantity = quantity;
+        this.product = product;
+        this.orderStatus = orderStatus;
+    }
 }

@@ -5,7 +5,7 @@ import com.example.backend.model.request.frontend.seller.DeleteProductRequest;
 import com.example.backend.model.request.frontend.seller.UpdateProductRequest;
 import com.example.backend.model.response.ProductDetailResponse;
 import com.example.backend.model.response.ProductTypesResponse;
-import com.example.backend.model.response.ProductsResponse;
+import com.example.backend.model.response.ProductResponse;
 import com.example.backend.model.response.admin.AdminProductResponse;
 import com.example.backend.model.response.seller.SellerProductResponse;
 import com.example.backend.service.ProductService;
@@ -34,7 +34,7 @@ public class ProductController {
     // Này là lấy danh sách sản phẩm, cái này ai cũng lấy được
     // Lưu ý là ADMIN và SELLER sẽ không sử dụng đường dẫn này!!!
     @GetMapping("/products")
-    public ResponseEntity<Map<String, List<ProductsResponse>>> getAllProducts() {
+    public ResponseEntity<Map<String, List<ProductResponse>>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProductSplitWithTypeId());
     }
 
@@ -52,7 +52,7 @@ public class ProductController {
 
     //Thằng này dùng để kiếm product theo keyword, t cũng không biết nó chạy ổn không nữa ~~
     @GetMapping("/search")
-    public ResponseEntity<List<ProductsResponse>> searchProducts(@RequestParam String keyword) {
+    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String keyword) {
         return ResponseEntity.ok(productService.searchProduct(keyword));
     }
 

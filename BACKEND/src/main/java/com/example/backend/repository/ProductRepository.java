@@ -2,6 +2,7 @@ package com.example.backend.repository;
 
 import com.example.backend.entity.Product;
 import com.example.backend.entity.ProductType;
+import com.example.backend.entity.Seller;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,6 +23,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findAllByName(String name);
 
     List<Product> findByNameContaining(String keyword);
+
+    @Query("SELECT p FROM Product p WHERE p.seller = :seller")
+    List<Product> findAllBySeller(@Param("seller") Seller seller);
 
     @Transactional
     @Modifying

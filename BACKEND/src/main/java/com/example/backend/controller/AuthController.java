@@ -3,10 +3,9 @@ package com.example.backend.controller;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
 import com.example.backend.model.response.LoginResponse;
-import com.example.backend.service.AccountService;
+import com.example.backend.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,12 +13,17 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:4000")
 public class AuthController {
 
+
+    private final AuthService authService;
+
     @Autowired
-    private AccountService accountService;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping(value = "/register")
     public ResponseEntity<Boolean> handleRegister(@RequestBody() RegisterRequest registerRequest) {
-        if (accountService.registerAccount(registerRequest)) {
+        if (authService.registerAccount(registerRequest)) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -27,7 +31,7 @@ public class AuthController {
 
     @PostMapping(value = "/login")
     public ResponseEntity<LoginResponse> handleLogin(@RequestBody() LoginRequest loginRequest) {
-        LoginResponse loginResponse = accountService.loginAccount(loginRequest);
+        LoginResponse loginResponse = authService.loginAccount(loginRequest);
         if (loginResponse != null) {
             return ResponseEntity.ok(loginResponse);
         }
@@ -35,11 +39,9 @@ public class AuthController {
     }
 
     @PostMapping(value = "/logout")
-    public ResponseEntity<Boolean> handleLogout(@RequestHeader("AuthenticationToken") String token) {
-        if (accountService.logoutAccount(token)) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<Boolean> handleLogout() {
+        authService.logoutAccount();
+        return ResponseEntity.ok().build();
     }
 
 }
