@@ -2,8 +2,8 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Seller;
-import com.example.backend.model.request.frontend.seller.UpdateSellerProfileRequest;
-import com.example.backend.model.response.seller.SellerProfileResponse;
+import com.example.backend.model.request.frontend.account.UpdateAccountProfileRequest;
+import com.example.backend.model.response.account.AccountProfileResponse;
 import com.example.backend.repository.SellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class SellerService {
     }
 
     public boolean existSellerByAccount(Account account) {
-        return sellerRepository.existsByAccount(account);
+        return account.getSeller() != null;
     }
 
     public Seller getSellerByUserName(String usserName) {
@@ -42,13 +42,12 @@ public class SellerService {
         sellerRepository.updateSellerAddressBySeller(address, seller);
     }
 
-    public void createSeller(Account account, UpdateSellerProfileRequest request) {
+    public void createSeller(Account account, UpdateAccountProfileRequest request) {
         sellerRepository.save(new Seller(account, request.getFullName(), request.getPhone(), request.getAddress()));
     }
 
-    // Copy thằng trên nhưng đại khái là nó dùng để lấy pro file Seller á!
-    public SellerProfileResponse getSellerProfile(Account account) {
-        return new SellerProfileResponse(
+    public AccountProfileResponse getSellerProfile(Account account) {
+        return new AccountProfileResponse(
                 account.getSeller().getFullname(),
                 account.getSeller().getPhone(),
                 account.getSeller().getAddress()
@@ -56,8 +55,8 @@ public class SellerService {
     }
 
     @Transactional
-    public void updateSellerProfile(UpdateSellerProfileRequest request, Account account) {
-        if (existSellerByAccount(account)) {
+    public void updateSellerProfile(UpdateAccountProfileRequest request, Account account) {
+        if (!existSellerByAccount(account)) {
             createSeller(account, request);
         }
         Seller seller = account.getSeller();

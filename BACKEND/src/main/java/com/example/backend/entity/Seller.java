@@ -16,7 +16,7 @@ import jakarta.persistence.OneToOne;
 import java.util.List;
 
 import lombok.Data;
-import lombok.Generated;
+
 
 @Entity
 @Data
@@ -52,6 +52,11 @@ public class Seller {
     @JsonIgnore
     @JsonManagedReference
     private List<Product> products;
+
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @JsonIgnore
+    private List<Payment> payments;
 
     public Seller(Account account, String fullname, String phone, String address) {
         this.account = account;

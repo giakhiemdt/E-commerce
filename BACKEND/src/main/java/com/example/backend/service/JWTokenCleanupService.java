@@ -14,8 +14,8 @@ public class JWTokenCleanupService {
         this.jwtTokenRepository = jwtTokenRepository;
     }
 
-    // Đặt lịch chạy hàng ngày (ví dụ mỗi ngày lúc 12 giờ đêm)
-    @Scheduled(cron = "0 0 0 * * ?")
+    // Đặt lịch chạy mỗi 1 phút sẽ tự động kiểm tra token hết hạn nè!
+    @Scheduled(fixedRate = 60000)
     @Transactional
     public void cleanExpiredTokens() {
         jwtTokenRepository.deleteExpiredTokens();

@@ -1,5 +1,6 @@
 package com.example.backend.entity;
 
+import com.example.backend.entity.enums.RoleEnum;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -25,7 +26,7 @@ public class Account {
     private String password;
 
     @Column(nullable = false)
-    private Role role;
+    private RoleEnum roleEnum;
 
     @Column(nullable = false)
     private Timestamp createdDate;
@@ -49,11 +50,11 @@ public class Account {
         this.createdDate = new Timestamp(System.currentTimeMillis());
     }
 
-    public Account(String username, String email, String password, Role role) {
+    public Account(String username, String email, String password, RoleEnum roleEnum) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.roleEnum = roleEnum;
         this.createdDate = new Timestamp(System.currentTimeMillis()); // Cập nhật thời gian tạo
         this.isActive = true;
     }

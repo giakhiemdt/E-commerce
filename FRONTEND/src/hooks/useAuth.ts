@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { fetchLogin } from "../api/auth";
-import { LoginRequest } from "../models/requests/AuthenticationRequest"; 
-import { LoginResponse } from "../models/responses/AuthenticationResponse"; 
-import { useNavigate } from "react-router-dom";
+import { fetchLogin } from "../api/fetchAuth";
+import { LoginRequest } from "../models/requests/AuthRequest";
+import { RegisterRequest } from "../models/requests/AuthRequest";
+import { LoginResponse } from "../models/responses/AuthResponse";
+import { StatusResponse } from "../models/responses/StatusResponse";
 
-import { fetchRegister } from "../api/auth"; 
-import { RegisterRequest } from "../models/requests/AuthenticationRequest"; 
+import { fetchRegister } from "../api/fetchAuth";
 
 import { useEffect } from "react";
 import { decodeToken } from "../utils/jwt";  
 import { DecodeToken } from "../models/DecodedToken";
 
-import { fetchLogout } from "../api/auth";
+import { fetchLogout } from "../api/fetchAuth";
 
 export const useLogin = () => {
     const [error, setError] = useState<string | null>(null);
@@ -27,14 +27,15 @@ export const useLogin = () => {
         setError(null);
 
         try {
-            const response: LoginResponse = await fetchLogin(loginData); 
+            const response: LoginResponse = await fetchLogin(loginData);
 
-            if (response.token) {
-                sessionStorage.setItem("token", response.token);
-                sessionStorage.setItem("username", response.username);
-                  window.location.href = "/home";
-
+            if (response.success) {
+                localStorage.setItem("token", response.token);
+            }else {
+                setError(response.message);
             }
+            return response.success
+
         } catch (error) {
             setError("Login failed. Please try again.");
         } finally {
@@ -49,8 +50,6 @@ export const useLogin = () => {
 export const useRegister = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const navigate = useNavigate();
-
 
   const handleRegister = async (username: string, email: string, password: string, rePassword: string) => {
 
@@ -65,11 +64,12 @@ export const useRegister = () => {
     setError(null);
 
     try {
-      const response = await fetchRegister(registerData);
-      
-        if (response) {
-            navigate("/login");
-        }
+      const response: StatusResponse = await fetchRegister(registerData);
+
+      if (!response.isSuccess) {
+          setError(response.message)
+      }
+      return response.isSuccess;
 
     } catch (error) {
       setError("Registration failed. Please try again.");
@@ -81,35 +81,46 @@ export const useRegister = () => {
   return { handleRegister, error, loading };
 };
 
-export const useLogout = async () => {
-  const response = await fetchLogout();
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("username");
-    sessionStorage.removeItem("SellerInfoStatus");
-    window.location.href = "/login";
-  
-  return null;
+export const useLogout = () => {
+    const logout = async () => {
+        await fetchLogout(); // Dù backend có phản hồi như thế nào thì frontend vẫn xóa không cần quan tâm.
+        localStorage.removeItem("token");
+        localStorage.removeItem("SellerInfoStatus");
+    }
+
+  return logout;
 }
 
 
 export const useDecodedToken = () => {
-  const [decodedToken, setDecodedToken] = useState<DecodeToken | null>(null);
-  const [loading, setLoading] = useState(true); // Trạng thái loading
+    const [decodedToken, setDecodedToken] = useState<DecodeToken | null>(null);
+    const [loading, setLoading] = useState(true); // Trạng thái loading
 
-  useEffect(() => {
-    const token = sessionStorage.getItem("token");
+    useEffect(() => {
+        const updateToken = () => {
+            const token = localStorage.getItem("token");
 
-    if (token) {
-      const decoded = decodeToken(token);
-      setDecodedToken(decoded);
-    } else {
-      setDecodedToken(null);
-    }
+            if (token) {
+                const decoded = decodeToken(token);
+                setDecodedToken(decoded);
+                console.log(decoded);
+            } else {
+                setDecodedToken(null);
+            }
 
-    setLoading(false); // Kết thúc trạng thái loading
-  }, []);
+            setLoading(false);
+        };
 
-  return { decodedToken, loading }; // Trả về cả decodedToken và loading
+        window.addEventListener("storage", updateToken);
+
+        updateToken();
+
+        return () => {
+            window.removeEventListener("storage", updateToken);
+        };
+    }, []);
+
+    return { decodedToken, loading };
 };
 
 

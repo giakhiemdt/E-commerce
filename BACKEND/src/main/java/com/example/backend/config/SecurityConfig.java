@@ -3,6 +3,7 @@ package com.example.backend.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,10 +27,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Thằng này mốt nghiên cứu sau, nghe nói chống việc bị người khác lợi dụng
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/login", // Mẹ nó code dell có tác dụng ngoài làm đẹp!!!
-                                        "/api/register", // Nói chứ thằng nào chạy vào cũng phải qua filter thôi!!!
+                                .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                                .requestMatchers(
+                                        "/api/register",
+                                        "/api/login",
+                                        "/api/products",
                                         "/api/product-types",
-                                        "/api/products")
+                                        "/api/product-detail/{productId}",
+                                        "/api/search/{keyword}")
                                 .permitAll()
                                 .anyRequest().authenticated());
 

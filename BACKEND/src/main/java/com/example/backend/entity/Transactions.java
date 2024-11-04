@@ -26,12 +26,21 @@ public class Transactions {
     private Payment payment;
     @OneToOne
     @JoinColumn(
-            name = "cart_status_id",
+            name = "orders_status_id",
             nullable = false
     )
     @JsonBackReference
-    private CartStatus cartStatus;
+    private OrdersStatus ordersStatus;
+
     private long fee;
     private Timestamp createdDate;
     private String notes;
+
+    public Transactions(Payment payment, OrdersStatus ordersStatus, long fee) {
+        this.payment = payment;
+        this.ordersStatus = ordersStatus;
+        this.fee = fee;
+        this.createdDate = new Timestamp(System.currentTimeMillis());
+    }
+    public Transactions() {}
 }

@@ -1,7 +1,7 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Account;
-import com.example.backend.entity.Role;
+import com.example.backend.entity.enums.RoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,13 +15,13 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
 
-    Optional<Account> findById(Long id);
+    Optional<Account> findById(Long accountId);
     Optional<Account> findByUsername(String username);
     Optional<Account> findByEmail(String email);
 
     List<Account> findAll();
 
-    List<Account> findByRole(Role role);
+    List<Account> findByRoleEnum(RoleEnum roleEnum);
 
     @Modifying
     @Query("UPDATE Account a SET a.isActive = :isActive WHERE a.id = :accountId")
@@ -36,7 +36,7 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     void updateAccountEmailByAccountId(@Param("accountId") Long accountId, @Param("email") String email);
 
     @Modifying
-    @Query("UPDATE Account a SET a.role = :role WHERE a.id = :accountId")
-    void updateAccountRoleByAccountId(@Param("accountId") Long accountId, @Param("role") Role role);
+    @Query("UPDATE Account a SET a.roleEnum = :role WHERE a.id = :accountId")
+    void updateAccountRoleByAccountId(@Param("accountId") Long accountId, @Param("role") RoleEnum role);
 
 }

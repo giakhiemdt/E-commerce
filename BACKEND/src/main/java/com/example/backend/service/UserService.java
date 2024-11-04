@@ -2,8 +2,8 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.Users;
-import com.example.backend.model.request.frontend.user.UpdateUserProfileRequest;
-import com.example.backend.model.response.user.UserProfileResponse;
+import com.example.backend.model.request.frontend.account.UpdateAccountProfileRequest;
+import com.example.backend.model.response.account.AccountProfileResponse;
 import com.example.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +40,8 @@ public class UserService {
     }
 
     // Lấy bờ rồ file nữa nè --- mệt vl!!
-    public UserProfileResponse getUserProfile(Account account) {
-        return new UserProfileResponse(
+    public AccountProfileResponse getUserProfile(Account account) {
+        return new AccountProfileResponse(
                 account.getUsers().getFullname(),
                 account.getUsers().getPhone(),
                 account.getUsers().getAddress()
@@ -50,7 +50,7 @@ public class UserService {
 
     //Cập nhật thông tin mới cho profile nè!
     @Transactional
-    public void updateUserProfile(UpdateUserProfileRequest request, Account account) {
+    public void updateUserProfile(UpdateAccountProfileRequest request, Account account) {
         Users user = account.getUsers();
         if (request.getFullName() != null) {
             updateUsersFullName(request.getFullName(), user);

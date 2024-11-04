@@ -1,6 +1,7 @@
 package com.example.backend.entity;
 
 
+import com.example.backend.entity.enums.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -13,10 +14,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
 
 import lombok.Data;
-import lombok.Generated;
 
 @Entity
 @Data
@@ -50,13 +53,14 @@ public class Product {
     @JsonIgnore
     @JsonManagedReference
     private ProductDetail productDetail;
+
     @OneToMany(
             mappedBy = "product",
             cascade = {CascadeType.ALL}
     )
     @JsonManagedReference
     @JsonIgnore
-    private List<Add> adds;
+    private List<Orders> orders;
     @OneToMany(
             mappedBy = "product",
             cascade = {CascadeType.ALL}
@@ -65,16 +69,17 @@ public class Product {
     @JsonManagedReference
     private List<FeedBack> feedBacks;
 
-
-    public  Product(Seller seller, ProductType productType, String name, int quantity) {
+    public  Product(Seller seller, ProductType productType, String name, int quantity, boolean isActive) {
         this.seller = seller;
         this.productType = productType;
         this.name = name;
         this.quantity = quantity;
-        this.isActive = true;
+        this.isActive = isActive;
     }
 
     public Product() {
 
     }
+
+
 }

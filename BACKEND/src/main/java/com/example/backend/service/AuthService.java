@@ -1,13 +1,14 @@
 package com.example.backend.service;
 
 import com.example.backend.entity.Account;
-import com.example.backend.entity.Role;
+import com.example.backend.entity.enums.RoleEnum;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
 import com.example.backend.model.response.LoginResponse;
-import com.example.backend.repository.AccountRepository;
+import com.example.backend.model.response.StatusResponse;
 import com.example.backend.utility.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,50 +35,54 @@ public class AuthService {
     // AUTHENTICATION ở đây!
 
     //tạo Account đồng thời tạo thêm User nè
-    public Boolean registerAccount(RegisterRequest registerRequest) {
+    public StatusResponse registerAccount(RegisterRequest registerRequest) {
 
         Optional<Account> existingAccount = accountService.getAccountByUserName(registerRequest.getUsername());
         if (existingAccount.isPresent()) { // Trùng tên rồi ní ơi
-            return false;
+            return new StatusResponse(false, "This username is already in use!");
         }
 
         Optional<Account> existingEmail = accountService.getAccountByEmail(registerRequest.getEmail());
         if (existingEmail.isPresent()) { // Trùng email nè ní
-            return false;
+            return new StatusResponse(false, "This email is already in use!");
         }
 
         if (!registerRequest.getPassword().equals(registerRequest.getRePassword())) { // Mật khẩu đell giống nhau
-            return false;
+            return new StatusResponse(false, "Passwords do not match!");
         }
 
         String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
-        Account newAccount = new Account(registerRequest.getUsername(), registerRequest.getEmail(), encodedPassword, Role.USER);
+        Account newAccount = new Account(registerRequest.getUsername(), registerRequest.getEmail(), encodedPassword, RoleEnum.USER);
         accountService.saveAccount(newAccount);
-        return true;
+        return new StatusResponse(true, "Account created!");
     }
 
+    //Đăng nhập ở đây!!
     public LoginResponse loginAccount(LoginRequest loginRequest) {
         Optional<Account> existingAccount = accountService.getAccountByUserName(loginRequest.getUsername());
         if (existingAccount.isPresent()) {
             Account account = existingAccount.get();
 
             if (!account.isActive()) {
-                throw new RuntimeException("Account is baned!");
+                return new LoginResponse(false, "Account is banned!", null);
             }
 
             if (passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
-                String token = jwtUtil.generateToken(account, account.getRole());
+                String token = jwtUtil.generateToken(account, account.getRoleEnum());
 
-                return new LoginResponse(account.getUsername(), token);
+                return new LoginResponse(true, "Login success!", token);
             }else {
-                throw new RuntimeException("Invalid password!");
+                return new LoginResponse(false, "Invalid password!", null);
             }
         }else{
-            throw new RuntimeException("Username not found!");
+            return new LoginResponse(false, "Username not found!", null);
         }
     }
 
-    public void logoutAccount() {
-        tokenService.handleLogout();
+    // ĐĂNG XUẤT NÈ!
+    public StatusResponse logoutAccount() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> existingAccount = accountService.getAccountByUserName(username);
+        return tokenService.handleLogout(existingAccount);
     }
 }

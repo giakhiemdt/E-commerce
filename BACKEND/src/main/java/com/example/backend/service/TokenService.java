@@ -2,12 +2,12 @@ package com.example.backend.service;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.JWToken;
+import com.example.backend.model.response.StatusResponse;
 import com.example.backend.repository.AccountRepository;
 import com.example.backend.repository.JWTokenRepository;
 import com.example.backend.utility.JwtUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -16,18 +16,16 @@ import java.util.Optional;
 @Service
 public class TokenService {
 
-    @Autowired
-    private JWTokenRepository jwTokenRepository;
+    private final JWTokenRepository jwTokenRepository;
+    private final JwtUtil jwtUtil;
+    private final AccountRepository aRepo;
 
     @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private AccountRepository aRepo;
-
-//    public void addBlackList(String token) {
-//        tblRepo.save(new TokenBlackList(token));
-//    }
+    public TokenService(JWTokenRepository jwTokenRepository, JwtUtil jwtUtil, AccountRepository aRepo) {
+        this.jwTokenRepository = jwTokenRepository;
+        this.jwtUtil = jwtUtil;
+        this.aRepo = aRepo;
+    }
 
     @Transactional
     public void deleteToken(String token) {
@@ -37,10 +35,6 @@ public class TokenService {
     @Transactional
     public void deleteByAccountId(long accountId) {
         jwTokenRepository.deleteByAccountId(accountId);
-    }
-
-    public boolean existToken(String token) { // Kiểm tra token có tồn tại hay không, cái này không kiểm tra thời gian hết hạn đâu
-        return jwTokenRepository.existsByToken(token);
     }
 
     public JWToken findByToken(String token) {
@@ -62,10 +56,12 @@ public class TokenService {
     }
 
     @Transactional
-    public void handleLogout() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<Account> existingAccount = aRepo.findByUsername(username);
-        existingAccount.ifPresent(account -> deleteByAccountId(account.getId()));
+    public StatusResponse handleLogout(Optional<Account> existingAccount) {
+        return existingAccount.map(account -> {
+                    deleteByAccountId(account.getId());
+                    return new StatusResponse(true, "Logout successful!");
+                }
+                ).orElse(new StatusResponse(false, "Invalid account!"));
     }
 
     @Transactional
@@ -76,29 +72,5 @@ public class TokenService {
         }
         return false;
     }
-
-    public boolean isADMIN(String token) {
-        String rolw = jwtUtil.extractRole(token);
-        return rolw.equals("ADMIN");
-    }
-
-    public boolean isSELLER(String token) {
-        String rolw = jwtUtil.extractRole(token);
-        return rolw.equals("SELLER");
-    }
-
-    public boolean isUSER(String token) {
-        String rolw = jwtUtil.extractRole(token);
-        return rolw.equals("USER");
-    }
-
-    public String trueToken(String authHeader) {
-        if (authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            return token;
-        }
-        return null;
-    }
-
 
 }

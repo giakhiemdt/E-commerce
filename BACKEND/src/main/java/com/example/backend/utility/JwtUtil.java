@@ -2,13 +2,11 @@ package com.example.backend.utility;
 
 import com.example.backend.entity.Account;
 import com.example.backend.entity.JWToken;
-import com.example.backend.entity.Role;
+import com.example.backend.entity.enums.RoleEnum;
 import com.example.backend.repository.JWTokenRepository;
-import com.example.backend.service.TokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,13 +24,14 @@ public class JwtUtil {
 //    private final Key SECRET_KEY =  new KeyUtil().getSecretKey();
     private final Key SECRET_KEY =  KeyUtil.getSecretKey();
 
-    public String generateToken(Account account, Role role) {
+    public String generateToken(Account account, RoleEnum roleEnum) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role.toString());
+        claims.put("role", roleEnum.toString());
         Date createdDate = new Date(System.currentTimeMillis());
         Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 60 * 24);
         String token = createToken(claims, account.getUsername(), createdDate, expirationDate);
         jwTokenRepository.save(new JWToken(token, account, createdDate, expirationDate));
+
         return token;
     }
 

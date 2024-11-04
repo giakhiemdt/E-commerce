@@ -49,26 +49,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Transactional
     @Modifying
-    @Query("UPDATE Product p SET p.productDetail.price = :productDetailPrice WHERE p = :product")
-    void updateProductByProductDetailPrice(@Param("productDetailPrice") long productDetailPrice, @Param("product") Product product);
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE Product p SET p.productDetail.discount = :productDetailDiscount WHERE p = :product")
-    void updateProductByProductDetailDiscount(@Param("productDetailDiscount") String productDetailDiscount, @Param("product") Product product);
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE Product p SET p.productDetail.description = :productDetailDescription WHERE p = :product")
-    void updateProductByProductDetailDescription(@Param("productDetailDescription") String productDetailDescription, @Param("product") Product product);
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE Product p SET p.productDetail.imageUrl = :productDetailImage WHERE p = :product")
-    void updateProductByProductDetailImageUrl(@Param("productDetailImage") String productDetailImage, @Param("product") Product product);
-
-    @Transactional
-    @Modifying
     @Query("DELETE FROM Product p WHERE p.id = :id")
     void deleteProductById(@Param("id") Long id);
 }

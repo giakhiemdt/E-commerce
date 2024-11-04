@@ -1,6 +1,7 @@
 package com.example.backend.entity;
 
 
+import com.example.backend.entity.enums.OrderStatusEnum;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -34,7 +35,7 @@ public class Users {
     )
     @JsonIgnore
     @JsonManagedReference
-    private List<Cart> carts;
+    private List<Orders> orders;
     @OneToMany(
             mappedBy = "users",
             cascade = {CascadeType.ALL}
@@ -50,4 +51,16 @@ public class Users {
     public Users() {
 
     }
+
+    public long getTotalPriceInCurrentCart() {
+
+        return orders.stream()
+                .filter(order -> order.getStatus().equals(OrderStatusEnum.CREATED))
+                .mapToLong(order -> order.getQuantity() *
+                        (order.getProduct().getProductDetail().getProductPrice()
+                        +order.getProduct().getProductDetail().getSystemFee()))
+                .sum();
+
+    }
+    
 }

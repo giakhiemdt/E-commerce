@@ -1,15 +1,16 @@
 package com.example.backend.model.response;
 
-import com.example.backend.entity.Role;
 import lombok.Data;
 
 @Data
 public class LoginResponse {
-    String username; // Thực ra cũng không cần username cho lắm!
-    String token;
+    private boolean success;
+    private String message;
+    private String token;
 
-    public LoginResponse(String username, String token) {
-        this.username = username;
+    public LoginResponse(boolean success, String message, String token) {
+        this.success = success;
+        this.message = message;
         this.token = token;
     }
 }

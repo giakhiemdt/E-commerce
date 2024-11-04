@@ -1,15 +1,15 @@
 package com.example.backend.model.request.backend;
 
-import com.example.backend.entity.Role;
+import com.example.backend.entity.enums.RoleEnum;
 import lombok.Data;
 
 @Data
 public class RoleUpdateMessage {
     private String username;
-    private Role role;
+    private RoleEnum roleEnum;
 
-    public RoleUpdateMessage(String username, Role role) {
+    public RoleUpdateMessage(String username, RoleEnum roleEnum) {
         this.username = username;
-        this.role = role;
+        this.roleEnum = roleEnum;
     }
 }

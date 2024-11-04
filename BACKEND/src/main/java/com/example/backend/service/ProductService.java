@@ -4,14 +4,9 @@ import com.example.backend.entity.Product;
 import com.example.backend.entity.ProductDetail;
 import com.example.backend.entity.ProductType;
 import com.example.backend.entity.Seller;
-import com.example.backend.model.request.frontend.seller.AddProductRequest;
-import com.example.backend.model.request.frontend.seller.DeleteProductRequest;
-import com.example.backend.model.request.frontend.seller.UpdateProductRequest;
-import com.example.backend.model.response.ProductDetailResponse;
-import com.example.backend.model.response.ProductResponse;
-import com.example.backend.model.response.ProductTypesResponse;
-import com.example.backend.model.response.admin.AdminProductResponse;
-import com.example.backend.model.response.seller.SellerProductResponse;
+import com.example.backend.model.request.frontend.product.HandleProductRequest;
+import com.example.backend.model.response.StatusResponse;
+import com.example.backend.model.response.product.*;
 import com.example.backend.repository.ProductDetailRepository;
 import com.example.backend.repository.ProductRepository;
 import com.example.backend.repository.ProductTypeRepository;
@@ -45,9 +40,8 @@ public class ProductService {
         this.productDetailRepository = productDetailRepository;
     }
 
-    //Lấy producttype theo id
-    public ProductType getProductTypeById(long productTypeId) {
-        return productTypeRepository.findById(productTypeId);
+    public ProductType getProductTypeByName(String name) {
+        return productTypeRepository.findByName(name);
     }
 
     //Lấy tất cả producttype
@@ -99,23 +93,28 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateProductByPrice(long price, Product product) {
-        productRepository.updateProductByProductDetailPrice(price, product);
+    public void updatePriceByProduct(long price, Product product) {
+        productDetailRepository.updatePriceByProduct(price, product);
     }
 
     @Transactional
-    public void updateProductByDiscount(String discount, Product product) {
-        productRepository.updateProductByProductDetailDiscount(discount, product);
+    public void updateSystemFeeByProduct(long systemFee, Product product) {
+        productDetailRepository.updateSystemFeeByProduct(systemFee, product);
+    }
+
+    @Transactional
+    public void updateProductByDiscount(int discount, Product product) {
+        productDetailRepository.updateDiscountByProduct(discount, product);
     }
 
     @Transactional
     public void updateProductByDescription(String description, Product product) {
-        productRepository.updateProductByProductDetailDescription(description, product);
+        productDetailRepository.updateDescriptionByProduct(description, product);
     }
 
     @Transactional
     public void updateProductByImageUrl(String imageUrl, Product product) {
-        productRepository.updateProductByProductDetailImageUrl(imageUrl, product);
+        productDetailRepository.updateImageUrlByProduct(imageUrl, product);
     }
 
     @Transactional
@@ -123,18 +122,29 @@ public class ProductService {
         productRepository.deleteProductById(productId);
     }
 
+    @Transactional
+    public void deleteProductDetailById(long productDetailId) {
+        productDetailRepository.deleteProductDetailById(productDetailId);
+    }
+
+    public boolean isSellerProduct(long productId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Product> existingProduct = getProductById(productId);
+        return existingProduct.map(product -> product.getSeller().getAccount().getUsername().equals(username)).orElse(false);
+    }
+
     //PUBLIC!!!!!!!!!
 
     // Cái này là lấy product type rồi thêm vào phẩn phản hồi product type để kiểm soát thông tin phản hồi tránh lộ thông tin nhạy cảm!!!
     // Cái này liên kết với lấy tất cả producttype á!
-    public List<ProductTypesResponse> getProductTypes() {
-        return getAllProductType().stream()
-                .map(productType -> new ProductTypesResponse(productType.getId(), productType.getName()))
-                .collect(Collectors.toList());
+    public ProductTypeListResponse getProductTypes() {
+        return new ProductTypeListResponse(getAllProductType().stream()
+                .map(productType -> new ProductTypeResponse(productType.getId(), productType.getName()))
+                .collect(Collectors.toList()));
     }
 
     // Còn cái này thì liên kết với ông products để lấy danh sách sản phẩm, tất nhiên sẽ phân loại theo loại sản phẩm
-    public Map<String, List<ProductResponse>> getAllProductSplitWithTypeId() { //Product sẽ tự đông phân loại theo type nha!
+    public ProductListWithTypeResponse getAllProductSplitWithTypeId() { //Product sẽ tự đông phân loại theo type nha!
         Map<String, List<ProductResponse>> map = new HashMap<>();
 
         List<ProductType> productTypes = getAllProductType();
@@ -146,92 +156,105 @@ public class ProductService {
                     .map(product -> new ProductResponse(
                     product.getId(), product.getName(),
                     productType.getName(),
-                    product.getProductDetail().getPrice(),
+                    product.getProductDetail().getProductPrice() // Lấy giá cộng tới phí hệ thống 10% hoa hồng
+                            + product.getProductDetail().getSystemFee(),
                     product.getProductDetail().getDiscount(),
                     product.getProductDetail().getImageUrl())).toList();
 
             map.put(productType.getName(), productResponse);
         }
 
-        return map;
+        return new ProductListWithTypeResponse(map);
     }
 
     //Cái này là lấy thông tin chi tiết của sản phẩm nếu người dùng cần xem nè!
-    public ProductDetailResponse getProductDetail(long productId) {
+    public UserProductDetailResponse getUserProductDetail(long productId) {
         Optional<Product> existingProduct = getProductById(productId);
         return existingProduct
                 .filter(Product::isActive) // Này copy của thằng trên thôi ~~
-                .map(product -> new ProductDetailResponse(
+                .map(product -> new UserProductDetailResponse(
                         product.getSeller().getFullname(),
                         product.getProductDetail().getDescription())
                 ).orElse(null);
     }
 
-    public List<ProductResponse> searchProduct(String keyWord) {
-        List<Product> products = getProductsContainKeyword(keyWord);
-        return products.stream()
+    public ProductListResponse searchProduct(String keyWord) {
+        return new ProductListResponse(getProductsContainKeyword(keyWord).stream()
                 .filter(Product::isActive) // Này copy của thằng trên với thằng trên nữa!!
                 .filter(product -> product.getQuantity() > 0)
                 .map(product -> new ProductResponse(
-                product.getId(), product.getName(),
-                product.getProductType().getName(),
-                product.getProductDetail().getPrice(),
-                product.getProductDetail().getDiscount(),
-                product.getProductDetail().getImageUrl())
-        ).toList();
+                        product.getId(), product.getName(),
+                        product.getProductType().getName(),
+                        product.getProductDetail().getProductPrice() // Lấy giá cộng tới phí hệ thống 10% hoa hồng
+                                + product.getProductDetail().getSystemFee(),
+                        product.getProductDetail().getDiscount(),
+                        product.getProductDetail().getImageUrl())
+                ).toList());
     }
 
-    // SELLERRRRR!!!!!!!!!!
+    // SELLERRRRR AND ADMINNNN!!!!!!!!!!
 
     // Phần này là của seller lấy danh sách sản phẩm mà họ bán nè!
-    public Map<String, List<SellerProductResponse>> getMyProducts() {
-        Map<String, List<SellerProductResponse>> map = new HashMap<>();
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ProductListWithTypeResponse getMyProducts() {
 
+        Map<String, List<ProductResponse>> map = new HashMap<>();
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
         List<ProductType> productTypes = getAllProductType();
         for (ProductType productType : productTypes) {
             List<Product> products = productType.getProducts();
-            List<SellerProductResponse> sellerProductResponse = products.stream() // Em bị ngáo ạ!!!
-                    .filter(product -> product.getSeller().getAccount().getUsername().equals(username)) // Má dell nhớ cách này làm quần quần nãy giờ!!!!
-                    .map(product -> new SellerProductResponse(
+            List<ProductResponse> productResponse = products.stream()
+                    .filter(product -> product.getSeller().getAccount().getUsername().equals(username))
+                    .map(product -> new ProductResponse(
                             product.getId(), product.getName(),
-                            productType.getName(), product.getQuantity(),
-                            product.isActive(), product.getProductDetail().getPrice(),
+                            productType.getName(),
+                            product.getProductDetail().getProductPrice(), // Lấy giá gốc
                             product.getProductDetail().getDiscount(),
-                            product.getProductDetail().getPostedDate(),
-                            product.getProductDetail().getSale(),
-                            product.getProductDetail().getDescription(),
-                            product.getProductDetail().getImageUrl()
-                    )).toList();
+                            product.getProductDetail().getImageUrl())).toList();
 
-            map.put(productType.getName(), sellerProductResponse);
+            map.put(productType.getName(), productResponse);
         }
-        return map;
+
+        return new ProductListWithTypeResponse(map);
+    }
+
+    public SellerProductDetailResponse getSellerProductDetail(long productId) {
+        Optional<Product> existingProduct = getProductById(productId);
+        return existingProduct
+                .map(product -> new SellerProductDetailResponse(
+                        product.getQuantity(), product.isActive(),
+                        product.getProductDetail().getPostedDate(),
+                        product.getProductDetail().getSale(),
+                        product.getProductDetail().getDescription()
+                        )
+                ).orElse(null);
     }
 
     // Cái này là liên kết với add-product để thêm product mới.
-    public void createProduct(AddProductRequest request) {
+    public StatusResponse createProduct(HandleProductRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        Product product = saveProduct(new Product(
-                sellerService.getSellerByUserName(username),
-                getProductTypeById(request.getTypeId()),
-                request.getName(), request.getQuantity()));
-        saveProductDetail(new ProductDetail(product, request.getPrice(), request.getDescription(), request.getImageUrl()));
-
+        if (request != null) {
+            Product product = saveProduct(new Product(
+                    sellerService.getSellerByUserName(username),
+                    getProductTypeByName(request.getProductTypeName()),
+                    request.getProductName(), request.getQuantity(), request.isActive()));
+            saveProductDetail(new ProductDetail(product, request.getPrice(), Math.round(request.getPrice() * 0.05),
+                    request.getDiscount(), request.getDescription(), request.getImageUrl()));
+            return new StatusResponse(true, "Created!");
+        }
+        return new StatusResponse(false, "Invalid product detail!");
     }
 
     //Cập nhật thông tin bờ rồ duck ở chỗ này nè!!!
     @Transactional
-    public void updateProduct(UpdateProductRequest request) {
-        Optional<Product> product = getProductById(request.getProductId());
+    public StatusResponse updateProduct(Long productId, HandleProductRequest request) {
+        Optional<Product> product = getProductById(productId);
 
-        if (product.isPresent()) {
-            if (request.getTypeId() != 0) {
-                updateProductByType(getProductTypeById(request.getTypeId()), product.get());
+        if (product.isPresent() && isSellerProduct(productId)) {
+            if (request.getProductTypeName() != null) {
+                updateProductByType(getProductTypeByName(request.getProductTypeName()), product.get());
             }
-            if (request.getName() != null) {
-                updateProductByName(request.getName(), product.get());
+            if (request.getProductName() != null) {
+                updateProductByName(request.getProductName(), product.get());
             }
             if (request.getQuantity() != product.get().getQuantity()) { // Số lượng thay đổi được nè!
                 updateProductByQuantity(request.getQuantity(), product.get());
@@ -239,10 +262,11 @@ public class ProductService {
             if (request.isActive() != product.get().isActive()) {
                 updateProductByActive(request.isActive(), product.get());
             }
-            if (request.getPrice() != 0) { //Giá đel thể nào khác 0
-                updateProductByPrice(request.getPrice(), product.get());
+            if (request.getPrice() != product.get().getProductDetail().getProductPrice()) {
+                updatePriceByProduct(request.getPrice(), product.get());
+                updateSystemFeeByProduct(Math.round(request.getPrice() * 0.05), product.get());
             }
-            if (request.getDiscount() != null) {
+            if (request.getDiscount() != product.get().getProductDetail().getDiscount()) {
                 updateProductByDiscount(request.getDiscount(), product.get());
             }
             if (request.getDescription() != null) {
@@ -251,39 +275,21 @@ public class ProductService {
             if (request.getImageUrl() != null) {
                 updateProductByImageUrl(request.getImageUrl(), product.get());
             }
+            return new StatusResponse(true, "Updated!");
         }
+        return new StatusResponse(false, "Invalid productID!");
     }
 
     // Lúc đầu t không nghĩ xóa đâu nhưng mà nếu chỉ thay đổi trạng thái thì nó khác mẹ gì update đâu???
     @Transactional
-    public void deleteProduct(DeleteProductRequest request) {
-        deleteProductById(request.getProductId());
-    }
-
-    // ADMIN !!~!~!~!~!
-
-    //Gán thêm cái lấy danh sách cho bờ rồ duck là xong rồi!!
-    public Map<String, List<AdminProductResponse>> getAllProductsWithDetail() {
-        Map<String, List<AdminProductResponse>> map = new HashMap<>();
-
-        List<ProductType> productTypes = getAllProductType();
-        for (ProductType productType : productTypes) {
-            List<Product> products = productType.getProducts();
-            List<AdminProductResponse> adminProductResponses = products.stream() // Em xin copy của anh trên!
-                    .map(product -> new AdminProductResponse(
-                            product.getId(), product.getName(),
-                            productType.getName(), product.getQuantity(),
-                            product.isActive(), product.getProductDetail().getPrice(),
-                            product.getProductDetail().getDiscount(),
-                            product.getProductDetail().getPostedDate(),
-                            product.getProductDetail().getSale(),
-                            product.getProductDetail().getDescription(),
-                            product.getProductDetail().getImageUrl()
-                    )).toList();
-
-            map.put(productType.getName(), adminProductResponses);
+    public StatusResponse deleteProduct(Long productId) {
+        Optional<Product> product = getProductById(productId);
+        if (product.isPresent() && isSellerProduct(productId)) {
+            deleteProductDetailById(product.get().getProductDetail().getId()); // Trước mắt tạm thời làm như vầy!
+            deleteProductById(productId);
+            return new StatusResponse(true, "Deleted!");
         }
-        return map;
+        return new StatusResponse(false, "Invalid productID!");
     }
 
 }

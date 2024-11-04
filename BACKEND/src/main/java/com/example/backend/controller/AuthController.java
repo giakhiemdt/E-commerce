@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.model.request.frontend.LoginRequest;
 import com.example.backend.model.request.frontend.RegisterRequest;
 import com.example.backend.model.response.LoginResponse;
+import com.example.backend.model.response.StatusResponse;
 import com.example.backend.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,26 +23,18 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register")
-    public ResponseEntity<Boolean> handleRegister(@RequestBody() RegisterRequest registerRequest) {
-        if (authService.registerAccount(registerRequest)) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<StatusResponse> handleRegister(@RequestBody() RegisterRequest registerRequest) {
+        return ResponseEntity.ok(authService.registerAccount(registerRequest));
     }
 
     @PostMapping(value = "/login")
     public ResponseEntity<LoginResponse> handleLogin(@RequestBody() LoginRequest loginRequest) {
-        LoginResponse loginResponse = authService.loginAccount(loginRequest);
-        if (loginResponse != null) {
-            return ResponseEntity.ok(loginResponse);
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(authService.loginAccount(loginRequest));
     }
 
-    @PostMapping(value = "/logout")
-    public ResponseEntity<Boolean> handleLogout() {
-        authService.logoutAccount();
-        return ResponseEntity.ok().build();
+    @DeleteMapping(value = "/logout") // Xóa token trong white list nếu có!
+    public ResponseEntity<StatusResponse> handleLogout() {
+        return ResponseEntity.ok(authService.logoutAccount());
     }
 
 }

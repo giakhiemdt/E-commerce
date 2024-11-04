@@ -29,8 +29,10 @@ public class ProductDetail {
     )
     @JsonBackReference
     private Product product;
-    private long price;
-    private String discount;
+    private long productPrice;
+    private long systemFee;
+    private int discount;
+
     @Column(
             nullable = false
     )
@@ -42,10 +44,17 @@ public class ProductDetail {
     private String description;
     private String imageUrl;
 
-    public ProductDetail(Product product, long price, String description, String imageUrl) {
+    public ProductDetail(Product product, long productPrice, long systemFee, int discount, String description, String imageUrl) {
         this.product = product;
-        this.price = price;
+        this.productPrice = productPrice;
+        this.systemFee = systemFee;
+        this.discount = discount;
         this.description = description;
         this.imageUrl = imageUrl;
+        this.postedDate = new Timestamp(System.currentTimeMillis());
+    }
+
+    public ProductDetail() {
+
     }
 }

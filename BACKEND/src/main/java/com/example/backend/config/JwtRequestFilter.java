@@ -33,40 +33,26 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("AuthenticationToken");
 
-        Set<String> publicEndpoints = new HashSet<>(Arrays.asList( // Nhìn hơi ngu nhưng mà thôi kệ
-                "/api/login",
-                "/api/register",
-                "/api/product-types",
-                "/api/products"
-        ));
+        if (SecurityContextHolder.getContext().getAuthentication() == null ) { //  Chưa xác thực thì thực hiện xác thực
+            if (authHeader != null && authHeader.startsWith("Bearer ")) { // Chả hiểu tại sao frontend phải gửi về kèm theo chữ người người gấu(Bearer) phía trước =))
+                String token = authHeader.substring(7);
 
-        if (publicEndpoints.contains(request.getRequestURI())) {
-            filterChain.doFilter(request, response);
-            return;
+                if (!tokenService.isValidToken(token)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Unauthorized access: Invalid token.");
+                    return;
+                }
+
+                String username = jwtUtil.extractName(token); // Giải mã lấy name cho t!!!!!
+                List<GrantedAuthority> role = getGrantedAuthorities(token);
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(username, null, role);
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication); // Lưu thông tin token đã giải mã vào, cần thì kiếm nó rồi lụm!
+            }
         }
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) { // Chả hiểu tại sao frontend phải gửi về kèm theo chữ người người gấu(Bearer) phía trước =))
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized access: Invalid token.");
-            return;
-        }
-
-        String token = authHeader.substring(7);
-
-        if (!tokenService.isValidToken(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized access: Invalid token.");
-            return;
-        }
-
-        String username = jwtUtil.extractName(token); // Giải mã lấy name cho t!!!!!
-        List<GrantedAuthority> role = getGrantedAuthorities(token);
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(username, null, role);
-
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication); // Lưu thông tin token đã giải mã vào, cần thì kiếm nó rồi lụm!
 
         filterChain.doFilter(request, response);
     }

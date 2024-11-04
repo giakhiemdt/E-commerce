@@ -4,34 +4,37 @@ package com.example.backend.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+
+import java.sql.Timestamp;
 import java.util.List;
 
 import lombok.Data;
 
 @Entity
 @Data
-public class Payment {
+public class  Payment {
     @Id
     @GeneratedValue(
             strategy = GenerationType.IDENTITY
     )
     private Long id;
+
+    @ManyToOne
+    @JoinColumn( name = "seller_id", nullable = false)
+    @JsonBackReference
+    private Seller seller;
+
     @OneToOne
     @JoinColumn(
-            name = "cart_id",
+            name = "orders_id",
             nullable = false
     )
     @JsonBackReference
-    private Cart cart;
+    private Orders orders;
+
     private long totalFee;
+    private Timestamp createdDate;
     @OneToMany(
             mappedBy = "payment",
             cascade = {CascadeType.ALL}
@@ -39,4 +42,15 @@ public class Payment {
     @JsonManagedReference
     @JsonIgnore
     private List<Transactions> transactions;
+
+    public Payment(Seller seller, Orders orders, long totalFee) {
+        this.seller = seller;
+        this.orders = orders;
+        this.totalFee = totalFee;
+        this.createdDate = new Timestamp(System.currentTimeMillis());
+    }
+
+    public Payment() {
+
+    }
 }

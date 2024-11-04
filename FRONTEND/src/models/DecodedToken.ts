@@ -4,3 +4,8 @@ export interface DecodeToken {
     iat: number;
     exp: number;
 }
+
+export interface AuthContextType {
+    decodedToken: DecodeToken | null;
+    loading: boolean;
+}
