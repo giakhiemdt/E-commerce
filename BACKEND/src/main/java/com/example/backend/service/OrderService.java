@@ -273,16 +273,6 @@ public class OrderService {
         return getOrderResponse(false);
     }
 
-//    @Transactional
-//    public StatusResponse acceptOrder(Long orderId) {
-//
-//        Orders order validateOrderAndSeller(orderId);
-//        if (order) {
-//
-//        }
-//
-//    }
-
     @Transactional
     public StatusResponse handleOrderStatus(Long orderId, OrderStatusEnum requestedStatus) {
 
@@ -299,6 +289,9 @@ public class OrderService {
 
         updateOrderStatusById(newStatus, orderId);
         saveOrdersStatus(new OrdersStatus(order.getNeedPaid(), newStatus, order));
+        if (newStatus.equals(OrderStatusEnum.ACCEPTED)) { // Nếu seller chấp nhận đơn thì tự động trừ số lượng tồn kho.
+            productService.updateProductByQuantity(order.getProduct().getQuantity() - order.getQuantity(), order.getProduct());
+        }
         return new StatusResponse(true, newStatus + "!");
     }
 
