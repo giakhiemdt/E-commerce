@@ -107,16 +107,18 @@ public class OrderService {
         Optional<Users> existingUser = accountService.getAccountByUserName(username).map(Account::getUsers);
         Optional<Product> existingProduct = productService.getProductById(productId);
         if (existingUser.isPresent() && existingProduct.isPresent()) {
-            Orders order = saveOrders(new Orders(existingUser.get(), existingProduct.get(),
-                    request.getQuantity(), OrderStatusEnum.CREATED));
+            if (existingProduct.get().getQuantity() > request.getQuantity()) { // Cho phép tiếp tục tạo đơn nếu hàng tồn kho đủ
+                Orders order = saveOrders(new Orders(existingUser.get(), existingProduct.get(),
+                        request.getQuantity(), OrderStatusEnum.CREATED));
 
-            saveOrdersStatus(new OrdersStatus(
-                    order.getQuantity() * (order.getProduct().getProductDetail().getProductPrice()
-                            + order.getProduct().getProductDetail().getSystemFee()) ,
-                    OrderStatusEnum.CREATED, order
-            ));
-
-            return new StatusResponse(true, "Added!");
+                saveOrdersStatus(new OrdersStatus(
+                        order.getQuantity() * (order.getProduct().getProductDetail().getProductPrice()
+                                + order.getProduct().getProductDetail().getSystemFee()) ,
+                        OrderStatusEnum.CREATED, order
+                ));
+                return new StatusResponse(true, "Added!");
+            }
+            return new StatusResponse(false, "Insufficient inventory!");
         }
         return new StatusResponse(false, "User or Product is not valid!");
     }
@@ -132,23 +134,26 @@ public class OrderService {
 
             if (existingOrder.isPresent()) {
                 Orders order = existingOrder.get();
+                Product product = productService.getProductById(productId).orElse(null);
+                if (product != null) {
 
-                updateQuantityByUserAndProductId(request.getQuantity(), user, productId);
+                    if (product.getQuantity() > request.getQuantity()) { // Có đủ tồn kho thì tiếp tục!!!
+                        updateQuantityByUserAndProductId(request.getQuantity(), user, productId);
 
-                long totalPrice = request.getQuantity() * productService.getProductById(productId)
-                        .map(product -> (product.getProductDetail().getProductPrice()
-                                + product.getProductDetail().getSystemFee()))
-                        .orElse(0L);  // If product is not found, set price to 0
+                        long totalPrice = request.getQuantity() * (product.getProductDetail().getProductPrice()
+                                + product.getProductDetail().getSystemFee());
 
-                updateTotalPriceByOrdersStatus(totalPrice, order.getOrdersStatusList().get(0));
+                        updateTotalPriceByOrdersStatus(totalPrice, order.getOrdersStatusList().get(0));
 
-                return new StatusResponse(true, "Updated!");
-            } else {
-                return new StatusResponse(false, "Order or Product is not valid!");
+                        return new StatusResponse(true, "Updated!");
+                    }
+                    return new StatusResponse(false, "Insufficient inventory!");
+                }
+                return new StatusResponse(false, "Product is not valid!");
             }
-        } else {
-            return new StatusResponse(false, "User is not valid!");
+            return new StatusResponse(false, "Order is not valid!");
         }
+        return new StatusResponse(false, "User is not valid!");
     }
 
 
@@ -215,6 +220,10 @@ public class OrderService {
                 }
 
                 if (existingOrder.get().getStatus().equals(OrderStatusEnum.CREATED) && existingUser.get().getOrders().contains(existingOrder.get())) {
+                    if (existingOrder.get().getQuantity() > existingOrder.get().getProduct().getQuantity()) {
+                        continue; // Nếu số lượng hàng đặt vượt quá số lượng tồn kho thì trực tiếp nhảy qua
+                    }
+
                     updateOrderStatusById(OrderStatusEnum.ORDERED, orderId);
 
                     long needPaid = existingOrder.get().getQuantity() *
